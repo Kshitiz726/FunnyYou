@@ -76,6 +76,17 @@ and while developing the pipeline that reads as "it works" when nothing was
 rendered — so a debug build talks to localhost only when asked, and a missing
 backend then shows an honest connection error.
 
+### What is not in this repo
+
+The scenario clips (`backend/templates/*.mp4`) and their costume reference
+stills are not committed — tens of MB of binary that git is the wrong place
+for, and the `.hybrid` reference is a photograph of a real person's face. They
+live on the render pod. The `.points.json` sidecars beside them *are*
+committed, because those are authored rather than generated.
+
+Nothing on the no-backend path needs any of it. A clone runs on mocks with an
+empty `backend/templates/`.
+
 ## Other platforms
 
 Android and Windows exist so the flow can be exercised without a Mac:
