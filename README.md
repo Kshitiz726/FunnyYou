@@ -1,14 +1,27 @@
 # Funny You
 
-Take one photo of yourself, pick a scenario, get a funny video of you in it.
-An iPhone app built with Flutter.
+Take one photo of yourself, pick a scenario, and get a funny video with your
+face in it.
 
-## Run it on an iPhone
+It's an iPhone app. Here's how to get it running on your phone.
 
-You need a Mac with Xcode and Flutter installed. You do **not** need a paid
-Apple Developer account — a free Apple ID works.
+## What you need first
 
-**1. Get the code and its packages**
+Three things on a Mac:
+
+1. **Xcode**, free from the App Store. It's big, start the download now.
+2. **Flutter**, one command in Terminal (skip it if you already have it):
+   ```bash
+   brew install --cask flutter
+   ```
+3. **An Apple ID**. Just your normal one. You do NOT need to pay Apple $99.
+
+That's it. No servers, no API keys, no accounts to make.
+
+## Step 1: grab the code
+
+Open Terminal and paste this whole block. It downloads everything and gets it
+ready. Takes a couple of minutes.
 
 ```bash
 git clone https://github.com/Kshitiz726/FunnyYou.git
@@ -17,47 +30,78 @@ flutter pub get
 cd ios && pod install && cd ..
 ```
 
-**2. Open it in Xcode**
+## Step 2: open it in Xcode
+
+Paste this:
 
 ```bash
 open ios/Runner.xcworkspace
 ```
 
-Open the workspace, not the project file.
+Careful here. Open `Runner.xcworkspace`, the white icon. There's a similar file
+called `Runner.xcodeproj` (blue icon) and it will not work. The command above
+opens the right one, so just paste it.
 
-**3. Sign it (once)**
+## Step 3: tell Xcode who you are
 
-In the left sidebar click **Runner**, then the **Signing & Capabilities** tab.
-Tick *Automatically manage signing* and pick your Apple ID under **Team**. If
-you have no team listed, add your Apple ID under Xcode → Settings → Accounts.
+You only ever do this once.
 
-If Xcode complains the bundle identifier is taken, change it to something of
-your own — `com.yourname.funnyyou` — and it will go through.
+1. In the list on the left, click **Runner** at the very top.
+2. Click the **Signing & Capabilities** tab.
+3. Tick **Automatically manage signing**.
+4. In the **Team** dropdown, pick your name. If it's empty, go to
+   **Xcode > Settings > Accounts**, hit the **+**, sign in with your Apple ID,
+   then come back and pick it.
 
-**4. Run it**
+If you see a red error about the bundle identifier already being taken, change
+the **Bundle Identifier** box to something nobody else would use, like
+`com.yourname.funnyyou`. Then it's happy.
 
-Plug in your iPhone, pick it from the device menu at the top, press ▶.
+## Step 4: run it
 
-The first launch will be blocked by iOS. On the phone go to **Settings →
-General → VPN & Device Management**, tap the developer profile, tap **Trust**,
-then open the app again. You only do this once.
+Plug your iPhone into the Mac with a cable. Unlock the phone. If it asks
+"Trust This Computer?", tap Trust.
 
-The Simulator also works and needs no signing at all — but it has no camera, so
-the app asks you for a photo from the library instead.
+At the top of Xcode there's a dropdown showing a device name. Click it and pick
+your iPhone. Then hit the **play button** (the triangle, top left).
 
-## What you'll see
+Wait a bit. First build is slow, like 5 minutes. After that it's quick.
 
-The whole app: the intro, taking your photo, all 40 scenarios, the paywall, the
-progress screen, and the result screen.
+### One last thing, the first time only
 
-The video itself is **not** really made — that part runs on a GPU server, and
-without one the app plays through the steps and then tells you there's no video
-rather than showing you a fake one. Everything else is real.
+The app installs but iOS won't let it open yet, because Apple doesn't know you.
+On your **phone**:
 
-## To make real videos
+**Settings > General > VPN & Device Management > tap your Apple ID > Trust**
 
-The renders happen on a GPU pod. When it's running, pass its address when you
-launch and the same app does real renders:
+Now open the app. Done.
+
+## Don't have a cable handy?
+
+You can run it on the fake iPhone built into Xcode instead. No signing, no
+phone, nothing to trust. Just paste:
+
+```bash
+flutter run
+```
+
+Only catch: the fake iPhone has no camera, so instead of taking a selfie it
+asks you to pick a photo from the library.
+
+## What actually works right now
+
+Everything you can tap: the intro, taking your photo, all 40 scenarios, the
+pricing screen, the loading screen, the finished video screen.
+
+The video itself is not really made yet. That part runs on a rented graphics
+card, and when that's switched off the app walks through all the steps and then
+tells you straight up there's no video, instead of faking one. So you're
+looking at the real app, just without the render.
+
+## Turning the real videos on
+
+When the GPU server is running, you launch it with the address instead of
+pressing play in Xcode. Paste this (swap in the real address and key):
 
 ```bash
 flutter run -d iphone \
@@ -65,22 +109,25 @@ flutter run -d iphone \
   --dart-define=API_KEY=your-key
 ```
 
-That has to be run from the terminal — pressing ▶ in Xcode skips those two
-settings. Only scenarios that are fully built on the server can be rendered;
-the app checks at launch and marks the rest "Soon" so you can't waste a credit
-on one. Setting the server up is in [backend/README.md](backend/README.md).
+Has to be Terminal, not the play button, because the play button doesn't know
+about those two settings.
 
-## Notes
+Only the scenarios that are finished on the server can actually be made. The
+app checks when it opens and puts "Soon" on the rest, so you can't waste money
+on one that isn't ready.
 
-- Needs iOS 14 or newer.
-- A free Apple ID build stops working after 7 days. Just run it again to
-  refresh it.
-- The scenario video clips aren't in this repo — they're large binary files
-  and they live on the render server. Nothing above needs them.
-- Android and Windows builds also work (`flutter run -d android`) if you want
-  to look at the app without a Mac.
+## Stuff that might trip you up
 
-## If you're working on the code
+- **The app stops opening after a week.** Normal. Free Apple IDs expire builds
+  after 7 days. Plug the phone in, hit play again, back to normal.
+- **Needs iOS 14 or newer.** Any iPhone from the last several years is fine.
+- **You can't email the app to someone.** Free account only runs it on phones
+  plugged into your own Mac. Sending builds around needs the paid Apple
+  account.
+- **`pod install` fails?** Run `sudo gem install cocoapods` and try again.
+- **Want to see it without a Mac?** `flutter run -d android` works too.
 
-More detail — the screen-by-screen flow, the scenario list, the backend, and
-the folder layout — is in [DEVELOPING.md](DEVELOPING.md).
+## For developers
+
+Everything about how it's built, the screens, the backend, the folder layout,
+is in [DEVELOPING.md](DEVELOPING.md).
