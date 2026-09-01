@@ -1,0 +1,55 @@
+{
+  "_comment": "Head mask for pirate.mp4, normalised 0..1, authored at 720x1248. Positives cover face, hair and the WHOLE beard -- any template facial hair left outside the mask is a boundary Wan has to blend into, and it grows a matching beard on the reference to do it. Negatives hold the hat, coat and sky out. The graph unions this with a per-frame pose head mask, so a jumpy SAM frame cannot expose the original head.",
+  "positive": [
+    {
+      "x": 0.4472,
+      "y": 0.234
+    },
+    {
+      "x": 0.6111,
+      "y": 0.2644
+    },
+    {
+      "x": 0.375,
+      "y": 0.3005
+    },
+    {
+      "x": 0.4167,
+      "y": 0.3325
+    },
+    {
+      "x": 0.4306,
+      "y": 0.3566
+    }
+  ],
+  "negative": [
+    {
+      "x": 0.4472,
+      "y": 0.5168
+    },
+    {
+      "x": 0.7292,
+      "y": 0.6546
+    },
+    {
+      "x": 0.2292,
+      "y": 0.5649
+    },
+    {
+      "x": 0.8542,
+      "y": 0.5168
+    },
+    {
+      "x": 0.125,
+      "y": 0.0721
+    },
+    {
+      "x": 0.9264,
+      "y": 0.3606
+    },
+    {
+      "x": 0.5208,
+      "y": 0.1258
+    }
+  ]
+}

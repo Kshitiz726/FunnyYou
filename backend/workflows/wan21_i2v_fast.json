@@ -1,0 +1,219 @@
+{
+  "1": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "wan2.1_i2v_480p_14B_fp8_scaled.safetensors",
+      "weight_dtype": "default"
+    },
+    "_meta": {
+      "title": "WanI2V"
+    }
+  },
+  "2": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "umt5_xxl_fp8_e4m3fn_scaled.safetensors",
+      "type": "wan",
+      "device": "default"
+    },
+    "_meta": {
+      "title": "WanTextEncoder"
+    }
+  },
+  "3": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "Wan2_1_VAE_bf16.safetensors"
+    },
+    "_meta": {
+      "title": "WanVAE"
+    }
+  },
+  "4": {
+    "class_type": "CLIPVisionLoader",
+    "inputs": {
+      "clip_name": "CLIP-ViT-H-14-laion2B-s32B-b79K.safetensors"
+    },
+    "_meta": {
+      "title": "ClipVision"
+    }
+  },
+  "5": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": "astro_still.png"
+    },
+    "_meta": {
+      "title": "FY_INPUT_IMAGE"
+    }
+  },
+  "6": {
+    "class_type": "ImageScale",
+    "inputs": {
+      "image": [
+        "5",
+        0
+      ],
+      "upscale_method": "lanczos",
+      "width": 480,
+      "height": 832,
+      "crop": "center"
+    },
+    "_meta": {
+      "title": "to 480x832"
+    }
+  },
+  "7": {
+    "class_type": "CLIPVisionEncode",
+    "inputs": {
+      "clip_vision": [
+        "4",
+        0
+      ],
+      "image": [
+        "6",
+        0
+      ],
+      "crop": "center"
+    },
+    "_meta": {
+      "title": "clipvis"
+    }
+  },
+  "8": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "clip": [
+        "2",
+        0
+      ],
+      "text": "A cheerful person in a white NASA spacesuit with the helmet visor fully open and raised, floating gently inside a space station with Earth glowing through the window behind them. They hold a mug; a small wobbling blob of tea floats out of it and drifts in the air. They watch it drift, then look directly at the camera and give a proud little shrug with a subtle amused expression. Slow gentle natural movement, one continuous shot, static camera, no cuts, face to camera throughout."
+    },
+    "_meta": {
+      "title": "FY_POSITIVE"
+    }
+  },
+  "9": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "clip": [
+        "2",
+        0
+      ],
+      "text": "multiple people, second person, background person, background astronaut, duplicate body, duplicate face, invented face, different face, face morphing, identity change, aged face, younger face, face distortion, face turned away, profile, back of head, face obscured, visor down, helmet covering face, sunglasses, mask, hands covering face, hair covering face, head cropped, shoulders cropped, extreme close-up, fast movement, exaggerated movement, motion blur, camera movement, camera shake, cuts, scene changes, silhouette, backlit face, heavy facial shadows, deformed hands, extra fingers, extra limbs, distorted body, reflection showing another person, watermark, text, logo"
+    },
+    "_meta": {
+      "title": "FY_NEGATIVE"
+    }
+  },
+  "10": {
+    "class_type": "WanImageToVideo",
+    "inputs": {
+      "positive": [
+        "8",
+        0
+      ],
+      "negative": [
+        "9",
+        0
+      ],
+      "vae": [
+        "3",
+        0
+      ],
+      "clip_vision_output": [
+        "7",
+        0
+      ],
+      "start_image": [
+        "6",
+        0
+      ],
+      "width": 480,
+      "height": 832,
+      "length": 81,
+      "batch_size": 1
+    },
+    "_meta": {
+      "title": "FY_LATENT"
+    }
+  },
+  "11": {
+    "class_type": "KSampler",
+    "inputs": {
+      "model": [
+        "20",
+        0
+      ],
+      "positive": [
+        "10",
+        0
+      ],
+      "negative": [
+        "10",
+        1
+      ],
+      "latent_image": [
+        "10",
+        2
+      ],
+      "seed": 778899,
+      "steps": 8,
+      "cfg": 1.0,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "denoise": 1
+    },
+    "_meta": {
+      "title": "FY_SAMPLER"
+    }
+  },
+  "12": {
+    "class_type": "VAEDecode",
+    "inputs": {
+      "samples": [
+        "11",
+        0
+      ],
+      "vae": [
+        "3",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "decode"
+    }
+  },
+  "13": {
+    "class_type": "VHS_VideoCombine",
+    "inputs": {
+      "images": [
+        "12",
+        0
+      ],
+      "frame_rate": 16,
+      "loop_count": 0,
+      "filename_prefix": "fy_astro_i2v",
+      "format": "video/h264-mp4",
+      "pingpong": false,
+      "save_output": true
+    },
+    "_meta": {
+      "title": "FY_OUTPUT"
+    }
+  },
+  "20": {
+    "class_type": "LoraLoaderModelOnly",
+    "inputs": {
+      "model": [
+        "1",
+        0
+      ],
+      "lora_name": "lightx2v_T2V_14B_cfg_step_distill_v2_lora_rank256_bf16.safetensors",
+      "strength_model": 1.0
+    },
+    "_meta": {
+      "title": "SpeedLoRA"
+    }
+  }
+}

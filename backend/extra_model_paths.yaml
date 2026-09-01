@@ -1,0 +1,34 @@
+# Point ComfyUI at the RunPod network volume instead of the container image.
+#
+# RunPod mounts the volume at /runpod-volume on serverless workers. Keeping the
+# ~35 GB model set there rather than in the image means the image stays a few
+# hundred MB, pulls fast, and can be rebuilt without moving the weights again.
+#
+# The volume must contain these directories, matching the client's model list:
+#
+#   /runpod-volume/diffusion_models/Wan2_2-Animate-14B_fp8_e5m2_scaled_KJ.safetensors
+#   /runpod-volume/text_encoders/umt5_xxl_fp16.safetensors
+#   /runpod-volume/vae/Wan2_1_VAE_bf16.safetensors
+#   /runpod-volume/clip_vision/CLIP-ViT-H-14-laion2B-s32B-b79K.safetensors
+#   /runpod-volume/loras/lightx2v_T2V_14B_cfg_step_distill_v2_lora_rank256_bf16.safetensors
+#   /runpod-volume/loras/WanAnimate_relight_lora_fp16.safetensors
+#
+# The 40 template clips live at /runpod-volume/templates/<template_id>.mp4 so a
+# render does not have to upload the same 5 MB clip on every request.
+
+runpod_volume:
+  base_path: /runpod-volume/
+  checkpoints: checkpoints
+  clip: text_encoders
+  clip_vision: clip_vision
+  controlnet: controlnet
+  diffusion_models: diffusion_models
+  unet: diffusion_models
+  loras: loras
+  text_encoders: text_encoders
+  upscale_models: upscale_models
+  vae: vae
+  # KJNodes and the Wan Animate preprocessors look here for the pose and
+  # person-detection ONNX models.
+  detection: detection
+  sam2: sam2

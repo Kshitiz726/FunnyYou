@@ -1,0 +1,1097 @@
+================================================================================
+FUNNY YOU - 40 TEMPLATE THUMBNAIL PROMPTS  (for Grok / Grok Imagine)
+================================================================================
+
+One prompt per template. Paste a PROMPT block into Grok exactly as it is. Grok
+takes a single prompt and has no separate negative field, so every exclusion
+is already written into the sentence - do not strip anything out, especially
+the clauses about the face being visible and unobstructed.
+
+SAVE AS: the filename given on each block, e.g.
+assets/templates/astronaut.jpg. The app picks the file up automatically - no
+code change needed. Ids match lib/data/templates.dart exactly.
+
+SPEC: portrait 3:4, at least 900px wide, saved as JPG under about 200KB each
+so the catalogue stays small in the app bundle.
+
+THE ONE THING THAT MATTERS MOST: the face must sit in the UPPER THIRD of the
+frame. The picker overlays the user's own photo as a circular bubble there, so
+a face placed lower in the frame gets covered up by it.
+
+WHY THE PEOPLE LOOK OLDER: these tiles are the shop window for a Danish boomer
+audience, and they mirror the video prompts, which specify the same
+late-sixties character. The user's own face is swapped in afterwards.
+
+
+--------------------------------------------------------------------------------
+1 / 40   Astronaut   [Heroes]
+save as:  assets/templates/astronaut.jpg
+--------------------------------------------------------------------------------
+
+PROMPT
+  An active, stylish person in their late sixties with a full head of grey or
+  silver hair and a lived-in, characterful face with real age lines and
+  natural skin texture, as an astronaut in a white spacesuit with the helmet
+  visor fully open and raised so the whole face is visible, standing on the
+  grey dusty surface of the moon holding a small Danish flag on a short pole,
+  Earth hanging low in the black sky behind. Caught mid-action: they shove the
+  flagpole down into the moon dust and let go with a flourish. Exactly one
+  person in the entire photograph, with no other people anywhere. Cinematic
+  medium shot with the surroundings clearly visible and the person placed
+  naturally in the environment. Their head and face sit in the UPPER THIRD of
+  the frame, large, clearly lit, sharp and completely unobstructed in a
+  natural three-quarter view. They are absorbed in what they are doing and
+  look slightly off to one side, not at the camera and not posing for it.
+  Nothing crosses in front of the face: no mask, no sunglasses, no hand, no
+  prop and no hair over the features. A warm, natural, characterful
+  expression. Photorealistic editorial photograph, vertical 3:4 portrait
+  format, very high resolution, rich natural cinematic lighting, filmic colour
+  grade, shallow depth of field, crisp detail and sharp focus on the face,
+  shot on a 50mm lens at f/2. No text, no watermark, no logo, no caption and
+  no border.
+
+
+--------------------------------------------------------------------------------
+2 / 40   Superhero   [Heroes]
+save as:  assets/templates/superhero.jpg
+--------------------------------------------------------------------------------
+
+PROMPT
+  An active, stylish person in their late sixties with a full head of grey or
+  silver hair and a lived-in, characterful face with real age lines and
+  natural skin texture, as a superhero in a blue suit and a long red cape
+  standing at the edge of a city rooftop at golden hour with the skyline
+  stretching out behind, both fists planted on the hips, no mask of any kind.
+  Caught mid-action: they throw one arm forward into a full flight-ready pose,
+  the long cape snapping and billowing in the wind. Exactly one person in the
+  entire photograph, with no other people anywhere. Cinematic medium shot with
+  the surroundings clearly visible and the person placed naturally in the
+  environment. Their head and face sit in the UPPER THIRD of the frame, large,
+  clearly lit, sharp and completely unobstructed in a natural three-quarter
+  view. They are absorbed in what they are doing and look slightly off to one
+  side, not at the camera and not posing for it. Nothing crosses in front of
+  the face: no mask, no sunglasses, no hand, no prop and no hair over the
+  features. A warm, natural, characterful expression. Photorealistic editorial
+  photograph, vertical 3:4 portrait format, very high resolution, rich natural
+  cinematic lighting, filmic colour grade, shallow depth of field, crisp
+  detail and sharp focus on the face, shot on a 50mm lens at f/2. No text, no
+  watermark, no logo, no caption and no border.
+
+
+--------------------------------------------------------------------------------
+3 / 40   Comic Book Hero   [Heroes]
+save as:  assets/templates/comic_hero.jpg
+--------------------------------------------------------------------------------
+
+PROMPT
+  An active, stylish person in their late sixties with a full head of grey or
+  silver hair and a lived-in, characterful face with real age lines and
+  natural skin texture, as a comic book hero in a bold primary-colour costume
+  standing in front of a hand-painted halftone comic backdrop, cel-shaded
+  lighting with clean ink outlines, no mask. Caught mid-action: they wind up
+  and throw an enormous punch into the empty air. Exactly one person in the
+  entire photograph, with no other people anywhere. Cinematic medium shot with
+  the surroundings clearly visible and the person placed naturally in the
+  environment. Their head and face sit in the UPPER THIRD of the frame, large,
+  clearly lit, sharp and completely unobstructed in a natural three-quarter
+  view. They are absorbed in what they are doing and look slightly off to one
+  side, not at the camera and not posing for it. Nothing crosses in front of
+  the face: no mask, no sunglasses, no hand, no prop and no hair over the
+  features. A warm, natural, characterful expression. Photorealistic editorial
+  photograph, vertical 3:4 portrait format, very high resolution, rich natural
+  cinematic lighting, filmic colour grade, shallow depth of field, crisp
+  detail and sharp focus on the face, shot on a 50mm lens at f/2. No text, no
+  watermark, no logo, no caption and no border.
+
+
+--------------------------------------------------------------------------------
+4 / 40   Medieval Knight   [Heroes]
+save as:  assets/templates/knight.jpg
+--------------------------------------------------------------------------------
+
+PROMPT
+  An active, stylish person in their late sixties with a full head of grey or
+  silver hair and a lived-in, characterful face with real age lines and
+  natural skin texture, as a knight in polished silver plate armour with no
+  helmet and the head bare, standing in a torchlit stone castle hall holding
+  an enormous two-handed sword upright. Caught mid-action: they haul the
+  enormous sword up into a mighty overhead swing. Exactly one person in the
+  entire photograph, with no other people anywhere. Cinematic medium shot with
+  the surroundings clearly visible and the person placed naturally in the
+  environment. Their head and face sit in the UPPER THIRD of the frame, large,
+  clearly lit, sharp and completely unobstructed in a natural three-quarter
+  view. They are absorbed in what they are doing and look slightly off to one
+  side, not at the camera and not posing for it. Nothing crosses in front of
+  the face: no mask, no sunglasses, no hand, no prop and no hair over the
+  features. A warm, natural, characterful expression. Photorealistic editorial
+  photograph, vertical 3:4 portrait format, very high resolution, rich natural
+  cinematic lighting, filmic colour grade, shallow depth of field, crisp
+  detail and sharp focus on the face, shot on a 50mm lens at f/2. No text, no
+  watermark, no logo, no caption and no border.
+
+
+--------------------------------------------------------------------------------
+5 / 40   Ninja   [Heroes]
+save as:  assets/templates/ninja.jpg
+--------------------------------------------------------------------------------
+
+PROMPT
+  An active, stylish person in their late sixties with a full head of grey or
+  silver hair and a lived-in, characterful face with real age lines and
+  natural skin texture, as a ninja in black with the face wrap pulled right
+  down around the neck so the whole face is bare, crouched low in an
+  exaggerated stealth pose on a moonlit tiled rooftop. Caught mid-action: they
+  creep forward one exaggeratedly silent step in a low crouch. Exactly one
+  person in the entire photograph, with no other people anywhere. Cinematic
+  medium shot with the surroundings clearly visible and the person placed
+  naturally in the environment. Their head and face sit in the UPPER THIRD of
+  the frame, large, clearly lit, sharp and completely unobstructed in a
+  natural three-quarter view. They are absorbed in what they are doing and
+  look slightly off to one side, not at the camera and not posing for it.
+  Nothing crosses in front of the face: no mask, no sunglasses, no hand, no
+  prop and no hair over the features. A warm, natural, characterful
+  expression. Photorealistic editorial photograph, vertical 3:4 portrait
+  format, very high resolution, rich natural cinematic lighting, filmic colour
+  grade, shallow depth of field, crisp detail and sharp focus on the face,
+  shot on a 50mm lens at f/2. No text, no watermark, no logo, no caption and
+  no border.
+
+
+--------------------------------------------------------------------------------
+6 / 40   Pirate Captain   [Heroes]
+save as:  assets/templates/pirate.jpg
+--------------------------------------------------------------------------------
+
+PROMPT
+  An active, stylish person in their late sixties with a full head of grey or
+  silver hair and a lived-in, characterful face with real age lines and
+  natural skin texture, as a pirate captain in a long weathered coat and a
+  tricorn hat pushed back off the forehead, both hands on the wheel of a
+  wooden ship, sails and open ocean behind. Caught mid-action: they spin the
+  ship's wheel hard through a full turn as the deck heels over. Exactly one
+  person in the entire photograph, with no other people anywhere. Cinematic
+  medium shot with the surroundings clearly visible and the person placed
+  naturally in the environment. Their head and face sit in the UPPER THIRD of
+  the frame, large, clearly lit, sharp and completely unobstructed in a
+  natural three-quarter view. They are absorbed in what they are doing and
+  look slightly off to one side, not at the camera and not posing for it.
+  Nothing crosses in front of the face: no mask, no sunglasses, no hand, no
+  prop and no hair over the features. A warm, natural, characterful
+  expression. Photorealistic editorial photograph, vertical 3:4 portrait
+  format, very high resolution, rich natural cinematic lighting, filmic colour
+  grade, shallow depth of field, crisp detail and sharp focus on the face,
+  shot on a 50mm lens at f/2. No text, no watermark, no logo, no caption and
+  no border.
+
+
+--------------------------------------------------------------------------------
+7 / 40   Wizard   [Heroes]
+save as:  assets/templates/wizard.jpg
+--------------------------------------------------------------------------------
+
+PROMPT
+  An active, stylish person in their late sixties with a full head of grey or
+  silver hair and a lived-in, characterful face with real age lines and
+  natural skin texture, as a wizard in deep blue robes and a pointed hat
+  tilted back off the face, standing in a candlelit stone tower library lined
+  with old books, one hand raised high. Caught mid-action: they sweep one hand
+  up in a grand casting gesture. Exactly one person in the entire photograph,
+  with no other people anywhere. Cinematic medium shot with the surroundings
+  clearly visible and the person placed naturally in the environment. Their
+  head and face sit in the UPPER THIRD of the frame, large, clearly lit, sharp
+  and completely unobstructed in a natural three-quarter view. They are
+  absorbed in what they are doing and look slightly off to one side, not at
+  the camera and not posing for it. Nothing crosses in front of the face: no
+  mask, no sunglasses, no hand, no prop and no hair over the features. A warm,
+  natural, characterful expression. Photorealistic editorial photograph,
+  vertical 3:4 portrait format, very high resolution, rich natural cinematic
+  lighting, filmic colour grade, shallow depth of field, crisp detail and
+  sharp focus on the face, shot on a 50mm lens at f/2. No text, no watermark,
+  no logo, no caption and no border.
+
+
+--------------------------------------------------------------------------------
+8 / 40   Detective   [Heroes]
+save as:  assets/templates/detective.jpg
+--------------------------------------------------------------------------------
+
+PROMPT
+  An active, stylish person in their late sixties with a full head of grey or
+  silver hair and a lived-in, characterful face with real age lines and
+  natural skin texture, as a 1940s detective in a long trench coat and a
+  fedora tilted back off the forehead, standing under a streetlamp on a wet
+  cobbled street at night, holding a magnifying glass. Caught mid-action: they
+  straighten up and hold something tiny up into the light of the streetlamp
+  between finger and thumb, one eyebrow climbing. Exactly one person in the
+  entire photograph, with no other people anywhere. Cinematic medium shot with
+  the surroundings clearly visible and the person placed naturally in the
+  environment. Their head and face sit in the UPPER THIRD of the frame, large,
+  clearly lit, sharp and completely unobstructed in a natural three-quarter
+  view. They are absorbed in what they are doing and look slightly off to one
+  side, not at the camera and not posing for it. Nothing crosses in front of
+  the face: no mask, no sunglasses, no hand, no prop and no hair over the
+  features. A warm, natural, characterful expression. Photorealistic editorial
+  photograph, vertical 3:4 portrait format, very high resolution, rich natural
+  cinematic lighting, filmic colour grade, shallow depth of field, crisp
+  detail and sharp focus on the face, shot on a 50mm lens at f/2. No text, no
+  watermark, no logo, no caption and no border.
+
+
+--------------------------------------------------------------------------------
+9 / 40   Rock Guitarist   [Entertainment]
+save as:  assets/templates/rock_guitarist.jpg
+--------------------------------------------------------------------------------
+
+PROMPT
+  An active, stylish person in their late sixties with a full head of grey or
+  silver hair and a lived-in, characterful face with real age lines and
+  natural skin texture, as a rock guitarist in a black leather jacket with an
+  electric guitar slung low, standing on a huge stadium stage with the guitar
+  neck angled down and to one side, haze and stage lights behind, completely
+  empty crowd area. Caught mid-action: they swing their arm in a huge full
+  windmill and slam down a power chord, then drop straight onto one knee for
+  the solo, leaning back over the guitar. Exactly one person in the entire
+  photograph, with no other people anywhere. Cinematic medium shot with the
+  surroundings clearly visible and the person placed naturally in the
+  environment. Their head and face sit in the UPPER THIRD of the frame, large,
+  clearly lit, sharp and completely unobstructed in a natural three-quarter
+  view. They are absorbed in what they are doing and look slightly off to one
+  side, not at the camera and not posing for it. Nothing crosses in front of
+  the face: no mask, no sunglasses, no hand, no prop and no hair over the
+  features. A warm, natural, characterful expression. Photorealistic editorial
+  photograph, vertical 3:4 portrait format, very high resolution, rich natural
+  cinematic lighting, filmic colour grade, shallow depth of field, crisp
+  detail and sharp focus on the face, shot on a 50mm lens at f/2. No text, no
+  watermark, no logo, no caption and no border.
+
+
+--------------------------------------------------------------------------------
+10 / 40   Pop Singer   [Entertainment]
+save as:  assets/templates/pop_singer.jpg
+--------------------------------------------------------------------------------
+
+PROMPT
+  An active, stylish person in their late sixties with a full head of grey or
+  silver hair and a lived-in, characterful face with real age lines and
+  natural skin texture, as a pop singer in a sparkling stage outfit on a
+  bright concert stage holding a microphone down at waist height, coloured
+  lights and haze behind, completely empty audience area. Caught mid-action:
+  they throw both arms straight up in triumph and the confetti cannons go off
+  all around them. Exactly one person in the entire photograph, with no other
+  people anywhere. Cinematic medium shot with the surroundings clearly visible
+  and the person placed naturally in the environment. Their head and face sit
+  in the UPPER THIRD of the frame, large, clearly lit, sharp and completely
+  unobstructed in a natural three-quarter view. They are absorbed in what they
+  are doing and look slightly off to one side, not at the camera and not
+  posing for it. Nothing crosses in front of the face: no mask, no sunglasses,
+  no hand, no prop and no hair over the features. A warm, natural,
+  characterful expression. Photorealistic editorial photograph, vertical 3:4
+  portrait format, very high resolution, rich natural cinematic lighting,
+  filmic colour grade, shallow depth of field, crisp detail and sharp focus on
+  the face, shot on a 50mm lens at f/2. No text, no watermark, no logo, no
+  caption and no border.
+
+
+--------------------------------------------------------------------------------
+11 / 40   DJ   [Entertainment]
+save as:  assets/templates/dj.jpg
+--------------------------------------------------------------------------------
+
+PROMPT
+  An active, stylish person in their late sixties with a full head of grey or
+  silver hair and a lived-in, characterful face with real age lines and
+  natural skin texture, as a DJ standing behind a glowing mixing deck in a
+  neon-lit club with both hands on the controls and no headphones anywhere
+  near the head. Caught mid-action: they slam the fader all the way up and the
+  whole booth erupts in light as the beat drops. Exactly one person in the
+  entire photograph, with no other people anywhere. Cinematic medium shot with
+  the surroundings clearly visible and the person placed naturally in the
+  environment. Their head and face sit in the UPPER THIRD of the frame, large,
+  clearly lit, sharp and completely unobstructed in a natural three-quarter
+  view. They are absorbed in what they are doing and look slightly off to one
+  side, not at the camera and not posing for it. Nothing crosses in front of
+  the face: no mask, no sunglasses, no hand, no prop and no hair over the
+  features. A warm, natural, characterful expression. Photorealistic editorial
+  photograph, vertical 3:4 portrait format, very high resolution, rich natural
+  cinematic lighting, filmic colour grade, shallow depth of field, crisp
+  detail and sharp focus on the face, shot on a 50mm lens at f/2. No text, no
+  watermark, no logo, no caption and no border.
+
+
+--------------------------------------------------------------------------------
+12 / 40   Concert Pianist   [Entertainment]
+save as:  assets/templates/pianist.jpg
+--------------------------------------------------------------------------------
+
+PROMPT
+  An active, stylish person in their late sixties with a full head of grey or
+  silver hair and a lived-in, characterful face with real age lines and
+  natural skin texture, as a concert pianist in black tie seated upright at a
+  grand piano on a spotlit stage, hands over the keys, dark empty auditorium
+  behind. Caught mid-action: they tear through an enormous glissando with both
+  hands sweeping the entire length of the keyboard, shoulders working and coat
+  tails flying. Exactly one person in the entire photograph, with no other
+  people anywhere. Cinematic medium shot with the surroundings clearly visible
+  and the person placed naturally in the environment. Their head and face sit
+  in the UPPER THIRD of the frame, large, clearly lit, sharp and completely
+  unobstructed in a natural three-quarter view. They are absorbed in what they
+  are doing and look slightly off to one side, not at the camera and not
+  posing for it. Nothing crosses in front of the face: no mask, no sunglasses,
+  no hand, no prop and no hair over the features. A warm, natural,
+  characterful expression. Photorealistic editorial photograph, vertical 3:4
+  portrait format, very high resolution, rich natural cinematic lighting,
+  filmic colour grade, shallow depth of field, crisp detail and sharp focus on
+  the face, shot on a 50mm lens at f/2. No text, no watermark, no logo, no
+  caption and no border.
+
+
+--------------------------------------------------------------------------------
+13 / 40   Movie Star   [Entertainment]
+save as:  assets/templates/movie_star.jpg
+--------------------------------------------------------------------------------
+
+PROMPT
+  An active, stylish person in their late sixties with a full head of grey or
+  silver hair and a lived-in, characterful face with real age lines and
+  natural skin texture, as a movie star in an elegant tailored outfit standing
+  on a red carpet with warm flashing lights behind and no photographers or
+  crowd visible. Caught mid-action: they give a slow regal wave to an unseen
+  crowd as camera flashes burst around them. Exactly one person in the entire
+  photograph, with no other people anywhere. Cinematic medium shot with the
+  surroundings clearly visible and the person placed naturally in the
+  environment. Their head and face sit in the UPPER THIRD of the frame, large,
+  clearly lit, sharp and completely unobstructed in a natural three-quarter
+  view. They are absorbed in what they are doing and look slightly off to one
+  side, not at the camera and not posing for it. Nothing crosses in front of
+  the face: no mask, no sunglasses, no hand, no prop and no hair over the
+  features. A warm, natural, characterful expression. Photorealistic editorial
+  photograph, vertical 3:4 portrait format, very high resolution, rich natural
+  cinematic lighting, filmic colour grade, shallow depth of field, crisp
+  detail and sharp focus on the face, shot on a 50mm lens at f/2. No text, no
+  watermark, no logo, no caption and no border.
+
+
+--------------------------------------------------------------------------------
+14 / 40   Ballroom Dancer   [Entertainment]
+save as:  assets/templates/ballroom_dancer.jpg
+--------------------------------------------------------------------------------
+
+PROMPT
+  An active, stylish person in their late sixties with a full head of grey or
+  silver hair and a lived-in, characterful face with real age lines and
+  natural skin texture, as a ballroom dancer in formal evening dress alone in
+  the middle of a grand ballroom floor beneath enormous chandeliers. Caught
+  mid-action: they launch into a fast spin across the polished floor, jacket
+  flaring out, and come out of it dropping into a spectacular deep lunge with
+  both arms thrown wide. Exactly one person in the entire photograph, with no
+  other people anywhere. Cinematic medium shot with the surroundings clearly
+  visible and the person placed naturally in the environment. Their head and
+  face sit in the UPPER THIRD of the frame, large, clearly lit, sharp and
+  completely unobstructed in a natural three-quarter view. They are absorbed
+  in what they are doing and look slightly off to one side, not at the camera
+  and not posing for it. Nothing crosses in front of the face: no mask, no
+  sunglasses, no hand, no prop and no hair over the features. A warm, natural,
+  characterful expression. Photorealistic editorial photograph, vertical 3:4
+  portrait format, very high resolution, rich natural cinematic lighting,
+  filmic colour grade, shallow depth of field, crisp detail and sharp focus on
+  the face, shot on a 50mm lens at f/2. No text, no watermark, no logo, no
+  caption and no border.
+
+
+--------------------------------------------------------------------------------
+15 / 40   Disco Dancer   [Entertainment]
+save as:  assets/templates/disco_dancer.jpg
+--------------------------------------------------------------------------------
+
+PROMPT
+  An active, stylish person in their late sixties with a full head of grey or
+  silver hair and a lived-in, characterful face with real age lines and
+  natural skin texture, as a disco dancer in a shiny 70s outfit standing under
+  a mirror ball on an empty lit dance floor. Caught mid-action: they hit the
+  classic disco point, one arm up and one arm down, then break into a fast
+  shoulder shimmy and spin all the way round on the spot under the mirror
+  ball. Exactly one person in the entire photograph, with no other people
+  anywhere. Cinematic medium shot with the surroundings clearly visible and
+  the person placed naturally in the environment. Their head and face sit in
+  the UPPER THIRD of the frame, large, clearly lit, sharp and completely
+  unobstructed in a natural three-quarter view. They are absorbed in what they
+  are doing and look slightly off to one side, not at the camera and not
+  posing for it. Nothing crosses in front of the face: no mask, no sunglasses,
+  no hand, no prop and no hair over the features. A warm, natural,
+  characterful expression. Photorealistic editorial photograph, vertical 3:4
+  portrait format, very high resolution, rich natural cinematic lighting,
+  filmic colour grade, shallow depth of field, crisp detail and sharp focus on
+  the face, shot on a 50mm lens at f/2. No text, no watermark, no logo, no
+  caption and no border.
+
+
+--------------------------------------------------------------------------------
+16 / 40   Cowboy   [Entertainment]
+save as:  assets/templates/cowboy.jpg
+--------------------------------------------------------------------------------
+
+PROMPT
+  An active, stylish person in their late sixties with a full head of grey or
+  silver hair and a lived-in, characterful face with real age lines and
+  natural skin texture, as a cowboy in a denim shirt and a cowboy hat pushed
+  back off the forehead, standing in front of a desert canyon at sunset with a
+  coiled lasso in one hand. Caught mid-action: they swing the lasso in two
+  wide loops above their head, building speed, and hurl it out of frame.
+  Exactly one person in the entire photograph, with no other people anywhere.
+  Cinematic medium shot with the surroundings clearly visible and the person
+  placed naturally in the environment. Their head and face sit in the UPPER
+  THIRD of the frame, large, clearly lit, sharp and completely unobstructed in
+  a natural three-quarter view. They are absorbed in what they are doing and
+  look slightly off to one side, not at the camera and not posing for it.
+  Nothing crosses in front of the face: no mask, no sunglasses, no hand, no
+  prop and no hair over the features. A warm, natural, characterful
+  expression. Photorealistic editorial photograph, vertical 3:4 portrait
+  format, very high resolution, rich natural cinematic lighting, filmic colour
+  grade, shallow depth of field, crisp detail and sharp focus on the face,
+  shot on a 50mm lens at f/2. No text, no watermark, no logo, no caption and
+  no border.
+
+
+--------------------------------------------------------------------------------
+17 / 40   Chef   [Professions]
+save as:  assets/templates/chef.jpg
+--------------------------------------------------------------------------------
+
+PROMPT
+  An active, stylish person in their late sixties with a full head of grey or
+  silver hair and a lived-in, characterful face with real age lines and
+  natural skin texture, as a chef in a white jacket and a tall hat worn well
+  back off the face, standing at a stainless steel counter in a professional
+  kitchen holding a frying pan over a gas flame. Caught mid-action: they toss
+  the contents of the pan and a wall of flame roars up, lighting the whole
+  kitchen. Exactly one person in the entire photograph, with no other people
+  anywhere. Cinematic medium shot with the surroundings clearly visible and
+  the person placed naturally in the environment. Their head and face sit in
+  the UPPER THIRD of the frame, large, clearly lit, sharp and completely
+  unobstructed in a natural three-quarter view. They are absorbed in what they
+  are doing and look slightly off to one side, not at the camera and not
+  posing for it. Nothing crosses in front of the face: no mask, no sunglasses,
+  no hand, no prop and no hair over the features. A warm, natural,
+  characterful expression. Photorealistic editorial photograph, vertical 3:4
+  portrait format, very high resolution, rich natural cinematic lighting,
+  filmic colour grade, shallow depth of field, crisp detail and sharp focus on
+  the face, shot on a 50mm lens at f/2. No text, no watermark, no logo, no
+  caption and no border.
+
+
+--------------------------------------------------------------------------------
+18 / 40   Firefighter   [Professions]
+save as:  assets/templates/firefighter.jpg
+--------------------------------------------------------------------------------
+
+PROMPT
+  An active, stylish person in their late sixties with a full head of grey or
+  silver hair and a lived-in, characterful face with real age lines and
+  natural skin texture, as a firefighter in full turnout gear with the helmet
+  off and tucked under one arm and no breathing mask, standing in front of a
+  fire engine. Caught mid-action: they swing a heavy hose up onto one
+  shoulder. Exactly one person in the entire photograph, with no other people
+  anywhere. Cinematic medium shot with the surroundings clearly visible and
+  the person placed naturally in the environment. Their head and face sit in
+  the UPPER THIRD of the frame, large, clearly lit, sharp and completely
+  unobstructed in a natural three-quarter view. They are absorbed in what they
+  are doing and look slightly off to one side, not at the camera and not
+  posing for it. Nothing crosses in front of the face: no mask, no sunglasses,
+  no hand, no prop and no hair over the features. A warm, natural,
+  characterful expression. Photorealistic editorial photograph, vertical 3:4
+  portrait format, very high resolution, rich natural cinematic lighting,
+  filmic colour grade, shallow depth of field, crisp detail and sharp focus on
+  the face, shot on a 50mm lens at f/2. No text, no watermark, no logo, no
+  caption and no border.
+
+
+--------------------------------------------------------------------------------
+19 / 40   Police Officer   [Professions]
+save as:  assets/templates/police_officer.jpg
+--------------------------------------------------------------------------------
+
+PROMPT
+  An active, stylish person in their late sixties with a full head of grey or
+  silver hair and a lived-in, characterful face with real age lines and
+  natural skin texture, as a police officer in uniform with the cap worn back
+  off the forehead and no sunglasses, standing beside a patrol car on a city
+  street holding a small notebook. Caught mid-action: they write out a parking
+  ticket with enormous deliberation, tear the page off cleanly, and slide it
+  under the wiper blade. Exactly one person in the entire photograph, with no
+  other people anywhere. Cinematic medium shot with the surroundings clearly
+  visible and the person placed naturally in the environment. Their head and
+  face sit in the UPPER THIRD of the frame, large, clearly lit, sharp and
+  completely unobstructed in a natural three-quarter view. They are absorbed
+  in what they are doing and look slightly off to one side, not at the camera
+  and not posing for it. Nothing crosses in front of the face: no mask, no
+  sunglasses, no hand, no prop and no hair over the features. A warm, natural,
+  characterful expression. Photorealistic editorial photograph, vertical 3:4
+  portrait format, very high resolution, rich natural cinematic lighting,
+  filmic colour grade, shallow depth of field, crisp detail and sharp focus on
+  the face, shot on a 50mm lens at f/2. No text, no watermark, no logo, no
+  caption and no border.
+
+
+--------------------------------------------------------------------------------
+20 / 40   Doctor   [Professions]
+save as:  assets/templates/doctor.jpg
+--------------------------------------------------------------------------------
+
+PROMPT
+  An active, stylish person in their late sixties with a full head of grey or
+  silver hair and a lived-in, characterful face with real age lines and
+  natural skin texture, as a doctor in a white coat with a stethoscope round
+  the neck and no face mask, standing in a bright hospital corridor holding a
+  comically oversized syringe. Caught mid-action: they hold the comically
+  oversized syringe upright and flick the side of it twice with a fingernail.
+  Exactly one person in the entire photograph, with no other people anywhere.
+  Cinematic medium shot with the surroundings clearly visible and the person
+  placed naturally in the environment. Their head and face sit in the UPPER
+  THIRD of the frame, large, clearly lit, sharp and completely unobstructed in
+  a natural three-quarter view. They are absorbed in what they are doing and
+  look slightly off to one side, not at the camera and not posing for it.
+  Nothing crosses in front of the face: no mask, no sunglasses, no hand, no
+  prop and no hair over the features. A warm, natural, characterful
+  expression. Photorealistic editorial photograph, vertical 3:4 portrait
+  format, very high resolution, rich natural cinematic lighting, filmic colour
+  grade, shallow depth of field, crisp detail and sharp focus on the face,
+  shot on a 50mm lens at f/2. No text, no watermark, no logo, no caption and
+  no border.
+
+
+--------------------------------------------------------------------------------
+21 / 40   Airline Pilot   [Professions]
+save as:  assets/templates/pilot.jpg
+--------------------------------------------------------------------------------
+
+PROMPT
+  An active, stylish person in their late sixties with a full head of grey or
+  silver hair and a lived-in, characterful face with real age lines and
+  natural skin texture, as an airline pilot in a crisp uniform with the cap
+  worn back off the forehead and no sunglasses, seated in an airliner cockpit
+  with instrument panels lit and blue sky through the windscreen. Caught
+  mid-action: they push the throttle levers all the way forward and hold them
+  there as the whole cockpit begins to shake with the acceleration. Exactly
+  one person in the entire photograph, with no other people anywhere.
+  Cinematic medium shot with the surroundings clearly visible and the person
+  placed naturally in the environment. Their head and face sit in the UPPER
+  THIRD of the frame, large, clearly lit, sharp and completely unobstructed in
+  a natural three-quarter view. They are absorbed in what they are doing and
+  look slightly off to one side, not at the camera and not posing for it.
+  Nothing crosses in front of the face: no mask, no sunglasses, no hand, no
+  prop and no hair over the features. A warm, natural, characterful
+  expression. Photorealistic editorial photograph, vertical 3:4 portrait
+  format, very high resolution, rich natural cinematic lighting, filmic colour
+  grade, shallow depth of field, crisp detail and sharp focus on the face,
+  shot on a 50mm lens at f/2. No text, no watermark, no logo, no caption and
+  no border.
+
+
+--------------------------------------------------------------------------------
+22 / 40   Space Commander   [Professions]
+save as:  assets/templates/space_commander.jpg
+--------------------------------------------------------------------------------
+
+PROMPT
+  An active, stylish person in their late sixties with a full head of grey or
+  silver hair and a lived-in, characterful face with real age lines and
+  natural skin texture, as a space fleet commander in a sleek futuristic
+  uniform standing on a starship bridge with glowing blue consoles and a
+  viewscreen of stars behind. Caught mid-action: they raise one arm and point
+  commandingly out at the stars. Exactly one person in the entire photograph,
+  with no other people anywhere. Cinematic medium shot with the surroundings
+  clearly visible and the person placed naturally in the environment. Their
+  head and face sit in the UPPER THIRD of the frame, large, clearly lit, sharp
+  and completely unobstructed in a natural three-quarter view. They are
+  absorbed in what they are doing and look slightly off to one side, not at
+  the camera and not posing for it. Nothing crosses in front of the face: no
+  mask, no sunglasses, no hand, no prop and no hair over the features. A warm,
+  natural, characterful expression. Photorealistic editorial photograph,
+  vertical 3:4 portrait format, very high resolution, rich natural cinematic
+  lighting, filmic colour grade, shallow depth of field, crisp detail and
+  sharp focus on the face, shot on a 50mm lens at f/2. No text, no watermark,
+  no logo, no caption and no border.
+
+
+--------------------------------------------------------------------------------
+23 / 40   Scientist   [Professions]
+save as:  assets/templates/scientist.jpg
+--------------------------------------------------------------------------------
+
+PROMPT
+  An active, stylish person in their late sixties with a full head of grey or
+  silver hair and a lived-in, characterful face with real age lines and
+  natural skin texture, as a scientist in a white lab coat with no goggles
+  over the eyes, standing at a laboratory bench of glassware under soft blue
+  light, holding a large conical flask. Caught mid-action: the liquid in the
+  flask erupts into a tower of foam that pours over the rim, spreads right
+  across the bench and begins cascading onto the floor. Exactly one person in
+  the entire photograph, with no other people anywhere. Cinematic medium shot
+  with the surroundings clearly visible and the person placed naturally in the
+  environment. Their head and face sit in the UPPER THIRD of the frame, large,
+  clearly lit, sharp and completely unobstructed in a natural three-quarter
+  view. They are absorbed in what they are doing and look slightly off to one
+  side, not at the camera and not posing for it. Nothing crosses in front of
+  the face: no mask, no sunglasses, no hand, no prop and no hair over the
+  features. A warm, natural, characterful expression. Photorealistic editorial
+  photograph, vertical 3:4 portrait format, very high resolution, rich natural
+  cinematic lighting, filmic colour grade, shallow depth of field, crisp
+  detail and sharp focus on the face, shot on a 50mm lens at f/2. No text, no
+  watermark, no logo, no caption and no border.
+
+
+--------------------------------------------------------------------------------
+24 / 40   Teacher   [Professions]
+save as:  assets/templates/teacher.jpg
+--------------------------------------------------------------------------------
+
+PROMPT
+  An active, stylish person in their late sixties with a full head of grey or
+  silver hair and a lived-in, characterful face with real age lines and
+  natural skin texture, as a teacher in smart casual clothes standing in front
+  of a chalkboard in a completely empty classroom, holding a wooden pointer.
+  Caught mid-action: they rap the chalkboard twice with the wooden pointer to
+  drive a point home and the pointer snaps clean in half. Exactly one person
+  in the entire photograph, with no other people anywhere. Cinematic medium
+  shot with the surroundings clearly visible and the person placed naturally
+  in the environment. Their head and face sit in the UPPER THIRD of the frame,
+  large, clearly lit, sharp and completely unobstructed in a natural
+  three-quarter view. They are absorbed in what they are doing and look
+  slightly off to one side, not at the camera and not posing for it. Nothing
+  crosses in front of the face: no mask, no sunglasses, no hand, no prop and
+  no hair over the features. A warm, natural, characterful expression.
+  Photorealistic editorial photograph, vertical 3:4 portrait format, very high
+  resolution, rich natural cinematic lighting, filmic colour grade, shallow
+  depth of field, crisp detail and sharp focus on the face, shot on a 50mm
+  lens at f/2. No text, no watermark, no logo, no caption and no border.
+
+
+--------------------------------------------------------------------------------
+25 / 40   King   [Fantasy]
+save as:  assets/templates/king.jpg
+--------------------------------------------------------------------------------
+
+PROMPT
+  An active, stylish person in their late sixties with a full head of grey or
+  silver hair and a lived-in, characterful face with real age lines and
+  natural skin texture, as a king in heavy royal robes and a gold crown,
+  seated on an ornate carved throne in a candlelit stone hall. Caught
+  mid-action: they push the heavy gold crown back up off their brow with one
+  finger, then fold their arms and sit back on the throne. Exactly one person
+  in the entire photograph, with no other people anywhere. Cinematic medium
+  shot with the surroundings clearly visible and the person placed naturally
+  in the environment. Their head and face sit in the UPPER THIRD of the frame,
+  large, clearly lit, sharp and completely unobstructed in a natural
+  three-quarter view. They are absorbed in what they are doing and look
+  slightly off to one side, not at the camera and not posing for it. Nothing
+  crosses in front of the face: no mask, no sunglasses, no hand, no prop and
+  no hair over the features. A warm, natural, characterful expression.
+  Photorealistic editorial photograph, vertical 3:4 portrait format, very high
+  resolution, rich natural cinematic lighting, filmic colour grade, shallow
+  depth of field, crisp detail and sharp focus on the face, shot on a 50mm
+  lens at f/2. No text, no watermark, no logo, no caption and no border.
+
+
+--------------------------------------------------------------------------------
+26 / 40   Queen   [Fantasy]
+save as:  assets/templates/queen.jpg
+--------------------------------------------------------------------------------
+
+PROMPT
+  An active, stylish person in their late sixties with a full head of grey or
+  silver hair and a lived-in, characterful face with real age lines and
+  natural skin texture, as a queen in an elegant gown and a delicate tiara,
+  standing at a tall window in a marble palace hall with her hands folded.
+  Caught mid-action: they raise one gloved hand and perform the tiniest, most
+  restrained royal wave imaginable. Exactly one person in the entire
+  photograph, with no other people anywhere. Cinematic medium shot with the
+  surroundings clearly visible and the person placed naturally in the
+  environment. Their head and face sit in the UPPER THIRD of the frame, large,
+  clearly lit, sharp and completely unobstructed in a natural three-quarter
+  view. They are absorbed in what they are doing and look slightly off to one
+  side, not at the camera and not posing for it. Nothing crosses in front of
+  the face: no mask, no sunglasses, no hand, no prop and no hair over the
+  features. A warm, natural, characterful expression. Photorealistic editorial
+  photograph, vertical 3:4 portrait format, very high resolution, rich natural
+  cinematic lighting, filmic colour grade, shallow depth of field, crisp
+  detail and sharp focus on the face, shot on a 50mm lens at f/2. No text, no
+  watermark, no logo, no caption and no border.
+
+
+--------------------------------------------------------------------------------
+27 / 40   Elf   [Fantasy]
+save as:  assets/templates/elf.jpg
+--------------------------------------------------------------------------------
+
+PROMPT
+  An active, stylish person in their late sixties with a full head of grey or
+  silver hair and a lived-in, characterful face with real age lines and
+  natural skin texture, as an elf ranger in green and brown leather with
+  pointed ears and long hair tucked back behind the ears and away from the
+  face, standing in a sunlit ancient forest holding a longbow. Caught
+  mid-action: they raise the longbow, draw the string smoothly back to the
+  cheek, and hold the aim on something far off through the trees. Exactly one
+  person in the entire photograph, with no other people anywhere. Cinematic
+  medium shot with the surroundings clearly visible and the person placed
+  naturally in the environment. Their head and face sit in the UPPER THIRD of
+  the frame, large, clearly lit, sharp and completely unobstructed in a
+  natural three-quarter view. They are absorbed in what they are doing and
+  look slightly off to one side, not at the camera and not posing for it.
+  Nothing crosses in front of the face: no mask, no sunglasses, no hand, no
+  prop and no hair over the features. A warm, natural, characterful
+  expression. Photorealistic editorial photograph, vertical 3:4 portrait
+  format, very high resolution, rich natural cinematic lighting, filmic colour
+  grade, shallow depth of field, crisp detail and sharp focus on the face,
+  shot on a 50mm lens at f/2. No text, no watermark, no logo, no caption and
+  no border.
+
+
+--------------------------------------------------------------------------------
+28 / 40   Fairy   [Fantasy]
+save as:  assets/templates/fairy.jpg
+--------------------------------------------------------------------------------
+
+PROMPT
+  An active, stylish person in their late sixties with a full head of grey or
+  silver hair and a lived-in, characterful face with real age lines and
+  natural skin texture, as a fairy in a flowing dress with large translucent
+  glowing wings, hovering just above the ground in a moonlit forest clearing
+  among floating motes of light, a handful of glowing dust cupped in one hand.
+  Caught mid-action: they scoop up a handful of glowing dust and fling it out
+  into the clearing. Exactly one person in the entire photograph, with no
+  other people anywhere. Cinematic medium shot with the surroundings clearly
+  visible and the person placed naturally in the environment. Their head and
+  face sit in the UPPER THIRD of the frame, large, clearly lit, sharp and
+  completely unobstructed in a natural three-quarter view. They are absorbed
+  in what they are doing and look slightly off to one side, not at the camera
+  and not posing for it. Nothing crosses in front of the face: no mask, no
+  sunglasses, no hand, no prop and no hair over the features. A warm, natural,
+  characterful expression. Photorealistic editorial photograph, vertical 3:4
+  portrait format, very high resolution, rich natural cinematic lighting,
+  filmic colour grade, shallow depth of field, crisp detail and sharp focus on
+  the face, shot on a 50mm lens at f/2. No text, no watermark, no logo, no
+  caption and no border.
+
+
+--------------------------------------------------------------------------------
+29 / 40   Football Star   [Sports]
+save as:  assets/templates/footballer.jpg
+--------------------------------------------------------------------------------
+
+PROMPT
+  An active, stylish person in their late sixties with a full head of grey or
+  silver hair and a lived-in, characterful face with real age lines and
+  natural skin texture, as a footballer in a red and white kit standing on a
+  floodlit pitch with completely empty stands behind, one foot resting on the
+  ball. Caught mid-action: they flick the ball up with one boot, catch it on
+  the thigh, and bounce it up onto the back of the neck, where it balances for
+  a moment before rolling off. Exactly one person in the entire photograph,
+  with no other people anywhere. Cinematic medium shot with the surroundings
+  clearly visible and the person placed naturally in the environment. Their
+  head and face sit in the UPPER THIRD of the frame, large, clearly lit, sharp
+  and completely unobstructed in a natural three-quarter view. They are
+  absorbed in what they are doing and look slightly off to one side, not at
+  the camera and not posing for it. Nothing crosses in front of the face: no
+  mask, no sunglasses, no hand, no prop and no hair over the features. A warm,
+  natural, characterful expression. Photorealistic editorial photograph,
+  vertical 3:4 portrait format, very high resolution, rich natural cinematic
+  lighting, filmic colour grade, shallow depth of field, crisp detail and
+  sharp focus on the face, shot on a 50mm lens at f/2. No text, no watermark,
+  no logo, no caption and no border.
+
+
+--------------------------------------------------------------------------------
+30 / 40   Basketball Player   [Sports]
+save as:  assets/templates/basketball_player.jpg
+--------------------------------------------------------------------------------
+
+PROMPT
+  An active, stylish person in their late sixties with a full head of grey or
+  silver hair and a lived-in, characterful face with real age lines and
+  natural skin texture, as a basketball player in a jersey on an indoor court
+  with completely empty stands, spinning a basketball on one fingertip. Caught
+  mid-action: they spin the ball on one fingertip with total concentration,
+  tongue very slightly out. Exactly one person in the entire photograph, with
+  no other people anywhere. Cinematic medium shot with the surroundings
+  clearly visible and the person placed naturally in the environment. Their
+  head and face sit in the UPPER THIRD of the frame, large, clearly lit, sharp
+  and completely unobstructed in a natural three-quarter view. They are
+  absorbed in what they are doing and look slightly off to one side, not at
+  the camera and not posing for it. Nothing crosses in front of the face: no
+  mask, no sunglasses, no hand, no prop and no hair over the features. A warm,
+  natural, characterful expression. Photorealistic editorial photograph,
+  vertical 3:4 portrait format, very high resolution, rich natural cinematic
+  lighting, filmic colour grade, shallow depth of field, crisp detail and
+  sharp focus on the face, shot on a 50mm lens at f/2. No text, no watermark,
+  no logo, no caption and no border.
+
+
+--------------------------------------------------------------------------------
+31 / 40   Tennis Champion   [Sports]
+save as:  assets/templates/tennis_champion.jpg
+--------------------------------------------------------------------------------
+
+PROMPT
+  An active, stylish person in their late sixties with a full head of grey or
+  silver hair and a lived-in, characterful face with real age lines and
+  natural skin texture, as a tennis champion in white kit standing at the
+  baseline of a sunlit court with completely empty stands, racket resting on
+  one shoulder. Caught mid-action: they twirl the racket through a full
+  rotation and catch it, throw a ball up and hit an enormous serve, following
+  through so hard that the racket sweeps down past the knee and spins them
+  half a turn. Exactly one person in the entire photograph, with no other
+  people anywhere. Cinematic medium shot with the surroundings clearly visible
+  and the person placed naturally in the environment. Their head and face sit
+  in the UPPER THIRD of the frame, large, clearly lit, sharp and completely
+  unobstructed in a natural three-quarter view. They are absorbed in what they
+  are doing and look slightly off to one side, not at the camera and not
+  posing for it. Nothing crosses in front of the face: no mask, no sunglasses,
+  no hand, no prop and no hair over the features. A warm, natural,
+  characterful expression. Photorealistic editorial photograph, vertical 3:4
+  portrait format, very high resolution, rich natural cinematic lighting,
+  filmic colour grade, shallow depth of field, crisp detail and sharp focus on
+  the face, shot on a 50mm lens at f/2. No text, no watermark, no logo, no
+  caption and no border.
+
+
+--------------------------------------------------------------------------------
+32 / 40   Professional Golfer   [Sports]
+save as:  assets/templates/golfer.jpg
+--------------------------------------------------------------------------------
+
+PROMPT
+  An active, stylish person in their late sixties with a full head of grey or
+  silver hair and a lived-in, characterful face with real age lines and
+  natural skin texture, as a golfer in a polo shirt and a cap worn back off
+  the forehead, standing on a green fairway with rolling hills behind, leaning
+  on a putter. Caught mid-action: they line up a delicate putt, take one
+  careful practice stroke, and tap the ball. Exactly one person in the entire
+  photograph, with no other people anywhere. Cinematic medium shot with the
+  surroundings clearly visible and the person placed naturally in the
+  environment. Their head and face sit in the UPPER THIRD of the frame, large,
+  clearly lit, sharp and completely unobstructed in a natural three-quarter
+  view. They are absorbed in what they are doing and look slightly off to one
+  side, not at the camera and not posing for it. Nothing crosses in front of
+  the face: no mask, no sunglasses, no hand, no prop and no hair over the
+  features. A warm, natural, characterful expression. Photorealistic editorial
+  photograph, vertical 3:4 portrait format, very high resolution, rich natural
+  cinematic lighting, filmic colour grade, shallow depth of field, crisp
+  detail and sharp focus on the face, shot on a 50mm lens at f/2. No text, no
+  watermark, no logo, no caption and no border.
+
+
+--------------------------------------------------------------------------------
+33 / 40   Formula Race Driver   [Sports]
+save as:  assets/templates/race_driver.jpg
+--------------------------------------------------------------------------------
+
+PROMPT
+  An active, stylish person in their late sixties with a full head of grey or
+  silver hair and a lived-in, characterful face with real age lines and
+  natural skin texture, as a racing driver in a colourful racing suit holding
+  the helmet under one arm and not wearing it, no balaclava, standing beside a
+  race car in a pit lane with a champagne bottle held low at waist height.
+  Caught mid-action: they shake the champagne bottle hard with a thumb clamped
+  over the top, then let go. Exactly one person in the entire photograph, with
+  no other people anywhere. Cinematic medium shot with the surroundings
+  clearly visible and the person placed naturally in the environment. Their
+  head and face sit in the UPPER THIRD of the frame, large, clearly lit, sharp
+  and completely unobstructed in a natural three-quarter view. They are
+  absorbed in what they are doing and look slightly off to one side, not at
+  the camera and not posing for it. Nothing crosses in front of the face: no
+  mask, no sunglasses, no hand, no prop and no hair over the features. A warm,
+  natural, characterful expression. Photorealistic editorial photograph,
+  vertical 3:4 portrait format, very high resolution, rich natural cinematic
+  lighting, filmic colour grade, shallow depth of field, crisp detail and
+  sharp focus on the face, shot on a 50mm lens at f/2. No text, no watermark,
+  no logo, no caption and no border.
+
+
+--------------------------------------------------------------------------------
+34 / 40   Boxing Champion   [Sports]
+save as:  assets/templates/boxer.jpg
+--------------------------------------------------------------------------------
+
+PROMPT
+  An active, stylish person in their late sixties with a full head of grey or
+  silver hair and a lived-in, characterful face with real age lines and
+  natural skin texture, as a boxer in shorts and gloves standing in the centre
+  of a brightly lit ring with completely empty seating around it. Caught
+  mid-action: they throw both arms out and up into a ridiculous bodybuilder
+  victory pose and flex hard. Exactly one person in the entire photograph,
+  with no other people anywhere. Cinematic medium shot with the surroundings
+  clearly visible and the person placed naturally in the environment. Their
+  head and face sit in the UPPER THIRD of the frame, large, clearly lit, sharp
+  and completely unobstructed in a natural three-quarter view. They are
+  absorbed in what they are doing and look slightly off to one side, not at
+  the camera and not posing for it. Nothing crosses in front of the face: no
+  mask, no sunglasses, no hand, no prop and no hair over the features. A warm,
+  natural, characterful expression. Photorealistic editorial photograph,
+  vertical 3:4 portrait format, very high resolution, rich natural cinematic
+  lighting, filmic colour grade, shallow depth of field, crisp detail and
+  sharp focus on the face, shot on a 50mm lens at f/2. No text, no watermark,
+  no logo, no caption and no border.
+
+
+--------------------------------------------------------------------------------
+35 / 40   Tropical Traveller   [Lifestyle]
+save as:  assets/templates/tropical_traveler.jpg
+--------------------------------------------------------------------------------
+
+PROMPT
+  An active, stylish person in their late sixties with a full head of grey or
+  silver hair and a lived-in, characterful face with real age lines and
+  natural skin texture, as a holidaymaker in a loud holiday shirt with no
+  sunglasses, standing on a white sand beach with turquoise water and palm
+  trees behind, holding a ridiculous cocktail bristling with umbrellas and
+  fruit. Caught mid-action: they lift the ridiculous cocktail and go to drink.
+  Exactly one person in the entire photograph, with no other people anywhere.
+  Cinematic medium shot with the surroundings clearly visible and the person
+  placed naturally in the environment. Their head and face sit in the UPPER
+  THIRD of the frame, large, clearly lit, sharp and completely unobstructed in
+  a natural three-quarter view. They are absorbed in what they are doing and
+  look slightly off to one side, not at the camera and not posing for it.
+  Nothing crosses in front of the face: no mask, no sunglasses, no hand, no
+  prop and no hair over the features. A warm, natural, characterful
+  expression. Photorealistic editorial photograph, vertical 3:4 portrait
+  format, very high resolution, rich natural cinematic lighting, filmic colour
+  grade, shallow depth of field, crisp detail and sharp focus on the face,
+  shot on a 50mm lens at f/2. No text, no watermark, no logo, no caption and
+  no border.
+
+
+--------------------------------------------------------------------------------
+36 / 40   Luxury Yacht Owner   [Lifestyle]
+save as:  assets/templates/yacht_owner.jpg
+--------------------------------------------------------------------------------
+
+PROMPT
+  An active, stylish person in their late sixties with a full head of grey or
+  silver hair and a lived-in, characterful face with real age lines and
+  natural skin texture, as a yacht owner in smart summer clothes standing on
+  the polished teak deck of a large luxury yacht at sea, one hand resting on
+  the chrome rail. Caught mid-action: they sweep one arm slowly right across
+  the horizon, presenting the entire ocean as their own personal property.
+  Exactly one person in the entire photograph, with no other people anywhere.
+  Cinematic medium shot with the surroundings clearly visible and the person
+  placed naturally in the environment. Their head and face sit in the UPPER
+  THIRD of the frame, large, clearly lit, sharp and completely unobstructed in
+  a natural three-quarter view. They are absorbed in what they are doing and
+  look slightly off to one side, not at the camera and not posing for it.
+  Nothing crosses in front of the face: no mask, no sunglasses, no hand, no
+  prop and no hair over the features. A warm, natural, characterful
+  expression. Photorealistic editorial photograph, vertical 3:4 portrait
+  format, very high resolution, rich natural cinematic lighting, filmic colour
+  grade, shallow depth of field, crisp detail and sharp focus on the face,
+  shot on a 50mm lens at f/2. No text, no watermark, no logo, no caption and
+  no border.
+
+
+--------------------------------------------------------------------------------
+37 / 40   Private Jet Traveller   [Lifestyle]
+save as:  assets/templates/jet_traveler.jpg
+--------------------------------------------------------------------------------
+
+PROMPT
+  An active, stylish person in their late sixties with a full head of grey or
+  silver hair and a lived-in, characterful face with real age lines and
+  natural skin texture, as a traveller in a tailored outfit leaning casually
+  in the open cabin doorway of a private jet with warm interior light spilling
+  out behind them. Caught mid-action: they flick one hand back over their
+  shoulder at the jet in an exaggeratedly casual oh-this-old-thing gesture.
+  Exactly one person in the entire photograph, with no other people anywhere.
+  Cinematic medium shot with the surroundings clearly visible and the person
+  placed naturally in the environment. Their head and face sit in the UPPER
+  THIRD of the frame, large, clearly lit, sharp and completely unobstructed in
+  a natural three-quarter view. They are absorbed in what they are doing and
+  look slightly off to one side, not at the camera and not posing for it.
+  Nothing crosses in front of the face: no mask, no sunglasses, no hand, no
+  prop and no hair over the features. A warm, natural, characterful
+  expression. Photorealistic editorial photograph, vertical 3:4 portrait
+  format, very high resolution, rich natural cinematic lighting, filmic colour
+  grade, shallow depth of field, crisp detail and sharp focus on the face,
+  shot on a 50mm lens at f/2. No text, no watermark, no logo, no caption and
+  no border.
+
+
+--------------------------------------------------------------------------------
+38 / 40   Millionaire   [Lifestyle]
+save as:  assets/templates/millionaire.jpg
+--------------------------------------------------------------------------------
+
+PROMPT
+  An active, stylish person in their late sixties with a full head of grey or
+  silver hair and a lived-in, characterful face with real age lines and
+  natural skin texture, as a millionaire in a sharp tailored suit standing in
+  a marble penthouse lobby with gold detailing and city lights through tall
+  windows, a thick stack of banknotes in one hand. Caught mid-action: they fan
+  the thick stack of banknotes out in one hand like a hand of playing cards.
+  Exactly one person in the entire photograph, with no other people anywhere.
+  Cinematic medium shot with the surroundings clearly visible and the person
+  placed naturally in the environment. Their head and face sit in the UPPER
+  THIRD of the frame, large, clearly lit, sharp and completely unobstructed in
+  a natural three-quarter view. They are absorbed in what they are doing and
+  look slightly off to one side, not at the camera and not posing for it.
+  Nothing crosses in front of the face: no mask, no sunglasses, no hand, no
+  prop and no hair over the features. A warm, natural, characterful
+  expression. Photorealistic editorial photograph, vertical 3:4 portrait
+  format, very high resolution, rich natural cinematic lighting, filmic colour
+  grade, shallow depth of field, crisp detail and sharp focus on the face,
+  shot on a 50mm lens at f/2. No text, no watermark, no logo, no caption and
+  no border.
+
+
+--------------------------------------------------------------------------------
+39 / 40   Santa Claus   [Lifestyle]
+save as:  assets/templates/santa.jpg
+--------------------------------------------------------------------------------
+
+PROMPT
+  An active, stylish person in their late sixties with a full head of grey or
+  silver hair and a lived-in, characterful face with real age lines and
+  natural skin texture, as Father Christmas in a red suit with a short neatly
+  trimmed white beard that does not cover the mouth or cheeks and a hat worn
+  well back off the eyes, standing beside a decorated Christmas tree by a lit
+  fireplace with a heavy sack. Caught mid-action: they bend and heave the
+  enormous sack up onto one shoulder. Exactly one person in the entire
+  photograph, with no other people anywhere. Cinematic medium shot with the
+  surroundings clearly visible and the person placed naturally in the
+  environment. Their head and face sit in the UPPER THIRD of the frame, large,
+  clearly lit, sharp and completely unobstructed in a natural three-quarter
+  view. They are absorbed in what they are doing and look slightly off to one
+  side, not at the camera and not posing for it. Nothing crosses in front of
+  the face: no mask, no sunglasses, no hand, no prop and no hair over the
+  features. A warm, natural, characterful expression. Photorealistic editorial
+  photograph, vertical 3:4 portrait format, very high resolution, rich natural
+  cinematic lighting, filmic colour grade, shallow depth of field, crisp
+  detail and sharp focus on the face, shot on a 50mm lens at f/2. No text, no
+  watermark, no logo, no caption and no border.
+
+
+--------------------------------------------------------------------------------
+40 / 40   Dog Walker   [Lifestyle]
+save as:  assets/templates/dog_walker.jpg
+--------------------------------------------------------------------------------
+
+PROMPT
+  An active, stylish person in their late sixties with a full head of grey or
+  silver hair and a lived-in, characterful face with real age lines and
+  natural skin texture, as a dog walker in a cosy autumn jacket on a
+  tree-lined park path covered in fallen leaves, holding the lead of an
+  enthusiastic golden retriever. Caught mid-action: the retriever suddenly
+  lunges after a squirrel and hauls them a full step down the path, boots
+  skidding through the leaves. Exactly one person in the entire photograph,
+  with no other people anywhere. Cinematic medium shot with the surroundings
+  clearly visible and the person placed naturally in the environment. Their
+  head and face sit in the UPPER THIRD of the frame, large, clearly lit, sharp
+  and completely unobstructed in a natural three-quarter view. They are
+  absorbed in what they are doing and look slightly off to one side, not at
+  the camera and not posing for it. Nothing crosses in front of the face: no
+  mask, no sunglasses, no hand, no prop and no hair over the features. A warm,
+  natural, characterful expression. Photorealistic editorial photograph,
+  vertical 3:4 portrait format, very high resolution, rich natural cinematic
+  lighting, filmic colour grade, shallow depth of field, crisp detail and
+  sharp focus on the face, shot on a 50mm lens at f/2. No text, no watermark,
+  no logo, no caption and no border.
+
+

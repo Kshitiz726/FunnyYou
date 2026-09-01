@@ -1,0 +1,80 @@
+{
+  "10": {
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "FY_TEMPLATE_STILL"
+    },
+    "inputs": {
+      "image": "template.jpg",
+      "upload": "image"
+    }
+  },
+  "11": {
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "FY_INPUT_IMAGE"
+    },
+    "inputs": {
+      "image": "face.jpg",
+      "upload": "image"
+    }
+  },
+  "20": {
+    "class_type": "ReActorFaceBoost",
+    "_meta": {
+      "title": "Face boost"
+    },
+    "inputs": {
+      "enabled": true,
+      "boost_model": "GFPGANv1.4.pth",
+      "interpolation": "Lanczos",
+      "visibility": 0.7,
+      "codeformer_weight": 0.5,
+      "restore_with_main_after": false
+    }
+  },
+  "30": {
+    "class_type": "ReActorFaceSwap",
+    "_meta": {
+      "title": "Swap"
+    },
+    "inputs": {
+      "enabled": true,
+      "input_image": [
+        "10",
+        0
+      ],
+      "source_image": [
+        "11",
+        0
+      ],
+      "face_boost": [
+        "20",
+        0
+      ],
+      "swap_model": "inswapper_128.onnx",
+      "facedetection": "retinaface_resnet50",
+      "face_restore_model": "none",
+      "face_restore_visibility": 1,
+      "codeformer_weight": 0.5,
+      "detect_gender_input": "no",
+      "detect_gender_source": "no",
+      "input_faces_index": "0",
+      "source_faces_index": "0",
+      "console_log_level": 1
+    }
+  },
+  "40": {
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "FY_OUTPUT"
+    },
+    "inputs": {
+      "images": [
+        "30",
+        0
+      ],
+      "filename_prefix": "fy_preview"
+    }
+  }
+}

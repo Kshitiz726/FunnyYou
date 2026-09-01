@@ -1,0 +1,258 @@
+{
+  "37": {
+    "class_type": "UnetLoaderGGUF",
+    "inputs": {
+      "unet_name": "Qwen-Image-Edit-2509-Q4_K_M.gguf"
+    },
+    "_meta": {
+      "title": "QwenEditModel"
+    }
+  },
+  "38": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "qwen_2.5_vl_7b_fp8_scaled.safetensors",
+      "type": "qwen_image",
+      "device": "default"
+    },
+    "_meta": {
+      "title": "QwenTextEncoder"
+    }
+  },
+  "39": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "qwen_image_vae.safetensors"
+    },
+    "_meta": {
+      "title": "QwenVAE"
+    }
+  },
+  "117": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": "scene_canvas.png"
+    },
+    "_meta": {
+      "title": "FY_CANVAS"
+    }
+  },
+  "118": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": "my_face_head.png"
+    },
+    "_meta": {
+      "title": "FY_INPUT_IMAGE"
+    }
+  },
+  "111": {
+    "class_type": "TextEncodeQwenImageEditPlus",
+    "inputs": {
+      "clip": [
+        "38",
+        0
+      ],
+      "vae": [
+        "39",
+        0
+      ],
+      "image1": [
+        "117",
+        0
+      ],
+      "image2": [
+        "118",
+        0
+      ],
+      "prompt": "Keep the head, face, facial features, hairstyle, hairline, facial hair and skin tone of the person in the reference image exactly as they are. Same face shape, same age, same build. Do not beautify, smooth, slim or age the face. Do not add or remove facial hair. Replace the flat grey area completely and show them as a cheerful person in a black leather jacket playing an electric guitar on a concert stage, bright stage lights and atmospheric haze behind them, the crowd area completely empty, wearing clear reading glasses that do not hide the eyes, the guitar neck held low and to the side so it never crosses the face. Exactly one person, alone in frame. Face turned to camera, fully visible and unobstructed. Medium shot, head and shoulders well inside the frame and never cropped. Soft even light on the face, no heavy shadow. Photorealistic, natural skin tones, vertical 9:16 full scene, no grey background remaining."
+    },
+    "_meta": {
+      "title": "FY_POSITIVE"
+    }
+  },
+  "110": {
+    "class_type": "TextEncodeQwenImageEditPlus",
+    "inputs": {
+      "clip": [
+        "38",
+        0
+      ],
+      "vae": [
+        "39",
+        0
+      ],
+      "image1": [
+        "117",
+        0
+      ],
+      "image2": [
+        "118",
+        0
+      ],
+      "prompt": "different person, changed face, beautified face, smoothed skin, changed hairstyle, changed age, multiple people, crowd, audience, band members, background people, face turned away, profile, back of head, sunglasses, hands covering face, guitar neck across face, microphone in front of face, hair across face, extreme close-up, cropped head, grey background, flat grey area, empty background, distorted face, deformed hands, extra fingers, watermark, text, logo"
+    },
+    "_meta": {
+      "title": "FY_NEGATIVE"
+    }
+  },
+  "66": {
+    "class_type": "ModelSamplingAuraFlow",
+    "inputs": {
+      "model": [
+        "37",
+        0
+      ],
+      "shift": 3
+    },
+    "_meta": {
+      "title": "shift"
+    }
+  },
+  "75": {
+    "class_type": "CFGNorm",
+    "inputs": {
+      "model": [
+        "66",
+        0
+      ],
+      "strength": 1
+    },
+    "_meta": {
+      "title": "cfgnorm"
+    }
+  },
+  "88": {
+    "class_type": "VAEEncode",
+    "inputs": {
+      "pixels": [
+        "117",
+        0
+      ],
+      "vae": [
+        "39",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "encode canvas"
+    }
+  },
+  "3": {
+    "class_type": "KSampler",
+    "inputs": {
+      "model": [
+        "75",
+        0
+      ],
+      "positive": [
+        "111",
+        0
+      ],
+      "negative": [
+        "110",
+        0
+      ],
+      "latent_image": [
+        "88",
+        0
+      ],
+      "seed": 20250811,
+      "steps": 20,
+      "cfg": 4,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "denoise": 1
+    },
+    "_meta": {
+      "title": "FY_SAMPLER"
+    }
+  },
+  "8": {
+    "class_type": "VAEDecode",
+    "inputs": {
+      "samples": [
+        "3",
+        0
+      ],
+      "vae": [
+        "39",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "decode"
+    }
+  },
+  "201": {
+    "class_type": "ReActorFaceBoost",
+    "inputs": {
+      "enabled": true,
+      "boost_model": "codeformer-v0.1.0.pth",
+      "interpolation": "Lanczos",
+      "visibility": 0.4,
+      "codeformer_weight": 1.0,
+      "restore_with_main_after": false
+    },
+    "_meta": {
+      "title": "FY_FACE_BOOST"
+    }
+  },
+  "200": {
+    "class_type": "ReActorFaceSwap",
+    "inputs": {
+      "enabled": true,
+      "input_image": [
+        "8",
+        0
+      ],
+      "source_image": [
+        "118",
+        0
+      ],
+      "swap_model": "inswapper_128.onnx",
+      "facedetection": "retinaface_resnet50",
+      "face_restore_model": "codeformer-v0.1.0.pth",
+      "face_restore_visibility": 0.3,
+      "codeformer_weight": 1.0,
+      "detect_gender_input": "no",
+      "detect_gender_source": "no",
+      "input_faces_index": "0",
+      "source_faces_index": "0",
+      "console_log_level": 1,
+      "face_boost": [
+        "201",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "FY_FACE_SWAP"
+    }
+  },
+  "60": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "images": [
+        "200",
+        0
+      ],
+      "filename_prefix": "fy_scene"
+    },
+    "_meta": {
+      "title": "FY_OUTPUT"
+    }
+  },
+  "61": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "images": [
+        "8",
+        0
+      ],
+      "filename_prefix": "fy_scene_qwenonly"
+    },
+    "_meta": {
+      "title": "FY_OUTPUT_QWEN_ONLY"
+    }
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "_comment": "Head mask for pirate.mp4, normalised 0..1 at 720x1248. Recovered on 2026-08-27 from the workflow embedded in pirate_hq_nopolish.mp4 -- the raw stage-1 output of the 2026-08-16 render that produced pirate_hq_boost.mp4. Do not 'tidy' these. The previous file had two of these three positives flipped into the negative list, which told SAM to EXCLUDE the lower head and body; the mask then covered only a small face patch, the template's grey hair and beard fell outside it, and Wan rendered them straight through. Positives run down the character (head, chest, body); negatives hold off the sky and the far side of frame.",
+  "positive": [
+    {
+      "x": 0.4479166667,
+      "y": 0.2463942308
+    },
+    {
+      "x": 0.4479166667,
+      "y": 0.4927884615
+    },
+    {
+      "x": 0.7291666667,
+      "y": 0.6550480769
+    }
+  ],
+  "negative": [
+    {
+      "x": 0.125,
+      "y": 0.0721153846
+    },
+    {
+      "x": 0.9270833333,
+      "y": 0.3605769231
+    }
+  ]
+}

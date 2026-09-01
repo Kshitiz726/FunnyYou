@@ -1,0 +1,383 @@
+================================================================================
+FUNNY YOU - COMPLETE RESTORE MANUAL
+Written 2026-08-23. Written to be handed to a fresh Claude session with no
+other context. Read sections 0 and 1 before touching anything.
+================================================================================
+
+0. READ THIS FIRST: THERE IS NO "BEST" CONFIG YET
+--------------------------------------------------------------------------------
+Two configurations are saved. NEITHER is known to be good-looking:
+
+  configs/A-verified-but-has-beard-bug/
+      The only configuration ever rendered end to end and delivered in the app
+      (2026-08-23, job 96e80385...). It WORKS, in the sense that it completes.
+      It also contains the two defects the customer complained about: a beard
+      the reference face does not have, and the pirate's hat destroyed near the
+      end of the clip and replaced by hallucinated black hair.
+      THIS IS THE CURRENTLY LIVE CONFIG. It is live because it is the only one
+      proven to complete, NOT because it looks right.
+
+  configs/B-mask-fixed-but-untested/
+      The fix for the root cause found on 2026-08-23 (see section 9). Mask
+      previews across all 81 frames confirm it keeps the hat and the coat and
+      never drops out. IT HAS NEVER BEEN RENDERED END TO END -- the RunPod pod
+      was paused before the render ran. It is expected to be better. That is a
+      prediction, not a measurement.
+
+  THE NEXT THING ANYONE SHOULD DO IS RENDER B AND LOOK AT IT.
+  If B looks better, make B live and delete A's claim to being the default.
+  If B looks worse, say so in this file and try the ideas at the end of §9.
+
+Switch between them:
+    bash restore/scripts/use_config.sh B      # try the fix
+    bash restore/scripts/use_config.sh A      # go back
+    bash restore/scripts/use_config.sh        # which one is live right now?
+
+
+1. WHAT THIS PROJECT IS
+--------------------------------------------------------------------------------
+A Flutter app ("Funny You") where one selfie produces a funny 5-second video of
+the customer inside a pre-made scenario clip. Target audience is Danish boomers,
+so the app is Danish-first. 40 scenarios are planned; the app already has all 40
+cards in lib/data/templates.dart. What is missing is the template video clips.
+
+  Flutter app      lib/
+  Python backend   backend/            FastAPI, talks to ComfyUI on a RunPod pod
+  Graphs           backend/workflows/  ComfyUI API-format JSON
+  Template clips   backend/templates/  <id>.mp4 plus <id>.points.json
+  This kit         restore/
+
+Nothing of value lives only on the pod. Graphs, points, clips, tools, backend
+and app are all in this repository. The pod holds model weights and an installed
+Python environment, both rebuildable from this document. Losing the pod costs
+download time, not work.
+
+
+2. WHAT THE PIPELINE IS
+--------------------------------------------------------------------------------
+One render = TWO queued ComfyUI prompts, not one graph.
+
+  Stage 1  wan_animate.json     Wan 2.2 Animate. Regenerates the head only, at
+                                720x1248, 81 frames, 16 fps (~5s).  ~13 min.
+  Stage 2  reactor_boost.json   ReActor + GFPGAN face restore over stage 1's
+                                output.                              ~6 min.
+
+They are separate prompts ON PURPOSE. Both sets of weights resident at once
+exceeds the container's 62 GB memory limit and the server is OOM-killed at the
+final encode. Do not "simplify" this into one graph.
+
+Why Wan Animate at all: it drives the head from the template's pose, so hair,
+head shape and expression all come across. It regenerates pixels ONLY inside
+character_mask; everything outside is the template's own footage, untouched.
+That is the entire mechanism by which the costume is preserved.
+
+A third graph, reactor_image_swap.json, makes the small still previews on the
+template tiles in the app. It is fast and unrelated to video quality.
+
+
+3. POD REQUIREMENTS
+--------------------------------------------------------------------------------
+GPU        RTX PRO 4500 (32 GB) was used. 24 GB is the practical floor;
+           observed peak VRAM ~24 GB.
+RAM        The container limit was 61999996928 bytes (62 GB) even though "free"
+           reported 251 GB. "free" LIES inside a container. Check the real
+           ceiling with:   cat /sys/fs/cgroup/memory.max
+           Check for past kills with: cat /sys/fs/cgroup/memory.events
+Volume     /workspace persists across container restarts. Python site-packages
+           do NOT -- a restarted container keeps your models and loses torch.
+Disk       Budget ~60 GB for models. "df" inside the container is misleading.
+Ports      8188 (ComfyUI). RunPod's HTTP proxy only works for ports exposed at
+           deploy time; 8188 was not exposed, so an SSH tunnel was used.
+           WHEN YOU REDEPLOY, EXPOSE 8188 AND SKIP THE TUNNEL ENTIRELY. The
+           tunnel was a recurring source of "Unexpected error" in the app.
+
+
+4. FULL INSTALL, FROM AN EMPTY POD
+--------------------------------------------------------------------------------
+!! Filenames and flags below are AUTHORITATIVE -- they were read out of the
+!! working graphs. Repository URLs and install commands are my best knowledge
+!! and should be sanity-checked, since they could not be verified against a
+!! live pod (it was already paused when this was written).
+!! AFTER the next pod works, run restore/scripts/capture_pod_state.sh on it and
+!! save the output next to this file. That replaces every guess below with fact.
+
+4.1 Base
+    python -c "import torch; print(torch.__version__, torch.cuda.is_available())"
+    # If this fails you are on a restarted container: site-packages were wiped.
+    # Reinstall torch FIRST, matching the CUDA of the base image, e.g.
+    #   pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
+
+4.2 ComfyUI
+    cd /workspace
+    git clone https://github.com/comfyanonymous/ComfyUI
+    cd ComfyUI && pip install -r requirements.txt
+
+4.3 Custom node packs   (cd /workspace/ComfyUI/custom_nodes)
+    Each one: git clone, then pip install -r requirements.txt if present.
+
+    git clone https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite
+        provides VHS_LoadVideo, VHS_VideoCombine, VHS_VideoInfo
+    git clone https://github.com/Fannovel16/comfyui_controlnet_aux
+        provides DWPreprocessor, PixelPerfectResolution
+    git clone https://github.com/kijai/ComfyUI-segment-anything-2
+        provides Sam2Segmentation, DownloadAndLoadSAM2Model
+    git clone https://github.com/kijai/ComfyUI-KJNodes
+        provides BlockifyMask, DrawMaskOnImage, PointsEditor,
+                 ImageCropByMaskAndResize, ImagePass
+    git clone https://github.com/Gourieff/comfyui-reactor-node
+        provides ReActorFaceSwap, ReActorFaceBoost, ReActorSetWeight,
+                 ReActorMaskHelper, ReActorFaceSimilarity
+    git clone https://github.com/kijai/ComfyUI-WanVideoWrapper
+        provides FaceMaskFromPoseKeypoints, SavePoseKpsAsJsonFile
+
+    Core ComfyUI supplies, with no extra install: WanAnimateToVideo, KSampler,
+    ModelSamplingSD3, TrimVideoLatent, UNETLoader, CLIPLoader, VAELoader,
+    CLIPVisionLoader, CLIPVisionEncode, CLIPTextEncode, LoadImage, VAEDecode,
+    ImageScale, ImageFromBatch, GrowMask, MaskComposite, PrimitiveInt.
+
+    *** THE TRAP THAT COST AN HOUR ***
+    ComfyUI-WanVideoWrapper fails to import with only "IMPORT FAILED" in the log:
+        ModuleNotFoundError: No module named 'accelerate'
+    The ONLY visible symptom is that FaceMaskFromPoseKeypoints is missing, so the
+    graph fails validation on a node that looks unrelated to the wrapper. Fix:
+
+        pip install -r /workspace/ComfyUI/custom_nodes/ComfyUI-WanVideoWrapper/requirements.txt
+        # pulls: accelerate, diffusers, peft, ftfy, gguf, pyloudnorm
+
+    Node count went 1206 -> 1359 after this. Use that number as the check:
+        curl -s localhost:8188/object_info | python -c "import json,sys;print(len(json.load(sys.stdin)))"
+
+    ReActor also needs insightface. If it fails to build, install a prebuilt
+    wheel matching the Python version rather than compiling.
+
+4.4 Models   (paths relative to /workspace/ComfyUI/models/)
+    Filenames are exact and MUST match, because the graphs reference them by
+    name. Sources are best-known, verify before trusting.
+
+    diffusion_models/   Wan2_2-Animate-14B_fp8_e5m2_scaled_KJ.safetensors
+                        source: HF Kijai/WanVideo_comfy            (~16 GB)
+    text_encoders/      umt5_xxl_fp8_e4m3fn_scaled.safetensors
+                        source: HF Comfy-Org/Wan_2.1_ComfyUI_repackaged
+                                split_files/text_encoders/          (~6 GB)
+    vae/                Wan2_1_VAE_bf16.safetensors
+                        source: HF Kijai/WanVideo_comfy
+    clip_vision/        CLIP-ViT-H-14-laion2B-s32B-b79K.safetensors (~2 GB)
+    loras/              lightx2v_T2V_14B_cfg_step_distill_v2_lora_rank256_bf16.safetensors
+                        source: HF Kijai/WanVideo_comfy
+                        THIS IS THE 8-STEP DISTILL LORA. It forces cfg 1.0.
+    loras/              WanAnimate_relight_lora_fp16.safetensors
+                        source: HF Kijai/WanVideo_comfy
+    sam2/               sam2_hiera_base_plus.safetensors
+                        DownloadAndLoadSAM2Model fetches this itself on first run.
+    facerestore_models/ GFPGANv1.4.pth
+                        source: TencentARC/GFPGAN releases
+    insightface/        inswapper_128.onnx
+                        ReActor fetches this itself on first run.
+
+    Also auto-downloaded by comfyui_controlnet_aux into its own cache:
+        yolox_l.onnx, dw-ll_ucoco_384_bs5.torchscript.pt
+
+    Disk tip: the pip cache reached 4.5 GB and was the difference between
+    fitting and not. "pip cache purge" is the first thing to try when full.
+
+4.5 Launch
+    cd /workspace/ComfyUI
+    python main.py --listen 127.0.0.1 --port 8188 \
+        --disable-smart-memory --cache-none
+
+    BOTH FLAGS ARE LOAD-BEARING. Without them ComfyUI keeps every model
+    resident between prompts, memory pins at the 62 GB ceiling, and stage 2 is
+    OOM-killed. With them, peak RSS was ~23 GB.
+
+4.6 Push this project's files onto the pod
+    bash restore/scripts/push_to_pod.sh root@<IP> -p <PORT> -i ~/.ssh/<key>
+
+
+5. CONNECT THE BACKEND
+--------------------------------------------------------------------------------
+Tunnel, only if 8188 is not exposed:
+    ssh -N -L 8188:127.0.0.1:8188 root@<POD_IP> -p <POD_PORT>
+
+backend/.env (gitignored -- NEVER commit it):
+    COMFY_URL=http://127.0.0.1:8188
+    VIDEO_PROVIDER=comfy
+    COMFY_WORKFLOW=wan_animate.json
+    COMFY_POLISH_WORKFLOW=reactor_boost.json
+    PREVIEW_PROVIDER=comfy_swap
+    COMFY_SWAP_WORKFLOW=reactor_image_swap.json
+    TEMPLATE_DIR=templates
+
+Run and verify:
+    cd backend && uvicorn app.main:app --host 0.0.0.0 --port 8000
+    curl -s http://127.0.0.1:8000/v1/health
+Expect comfyReachable true, workflowValid true, and renderableTemplates listing
+every template that has BOTH a clip and a points sidecar.
+
+Tests:   cd backend && python -m pytest -q      (71 tests; the devstack e2e one
+         needs a live ComfyUI and fails without a pod -- that is expected)
+
+
+6. ADDING A NEW TEMPLATE
+--------------------------------------------------------------------------------
+    python backend/tools/add_template.py path/to/clips --url http://127.0.0.1:8188
+
+For each video it copies the clip to backend/templates/, uploads it to ComfyUI,
+runs a pose probe on frame 1, derives SAM seed points from the 68 facial
+landmarks, and writes <id>.points.json.
+
+The filename is the template id and MUST match an id in lib/data/templates.dart.
+All 40 cards already exist there with titles, taglines and Danish strings, so
+naming the file astronaut.mp4 is the entire registration step.
+
+A clip with no points sidecar shows as "Soon" in the app instead of rendering
+against the wrong subject. That gate is deliberate -- see the first bullet in §8.
+
+NOTE: derive_points.py has NEVER been validated against real keypoints; the pod
+paused first. Before trusting a batch, run it on pirate.mp4 and compare its
+output to configs/B-mask-fixed-but-untested/pirate.points.json, which was
+authored by hand and verified with mask previews.
+
+
+7. THE TOOLS IN THIS KIT
+--------------------------------------------------------------------------------
+restore/RESTORE.txt                  this file
+restore/configs/A-.../               verified, completes, has the beard bug
+restore/configs/B-.../               mask fixed, never rendered
+restore/scripts/use_config.sh        swap A <-> B, or report which is live
+restore/scripts/capture_pod_state.sh RUN ON A HEALTHY POD, save the output here.
+                                     Dumps GPU, cgroup memory ceiling, ComfyUI
+                                     commit, every custom node's git remote and
+                                     commit, an authoritative node-class -> pack
+                                     map, every model file with sizes, and
+                                     pip freeze.
+restore/scripts/push_to_pod.sh       push graphs, clips and tools to a fresh pod
+backend/tools/add_template.py        onboard a directory of template clips
+backend/tools/derive_points.py       pose keypoints -> SAM points (untested)
+
+
+8. HARD-WON FACTS. DO NOT RE-LEARN THESE.
+--------------------------------------------------------------------------------
+* SAM points are PER TEMPLATE. They are pixel coordinates of the render
+  resolution. Reusing one clip's points on another silently locks the segmenter
+  onto a bystander or the background -- a WRONG render, not a failed one.
+  Sidecars are stored normalised 0..1 so they survive a resolution change.
+
+* GrowMask.expand and BlockifyMask.block_size are ALSO in render-resolution
+  pixels. Going 480x832 -> 720x1248 means scaling them by 1.5.
+
+* VALIDATE MASKS ACROSS THE WHOLE CLIP, NEVER FRAME 1. A mask covering 13% of
+  frame 1 covered 25% averaged over the clip and swallowed the hat entirely.
+  Checking one frame is exactly how a broken mask shipped to the customer.
+
+* A BIGGER MASK IS NOT A SAFER MASK. Wan invents content to fill whatever area
+  it is given. Growing the mask to 31% of frame made it hallucinate a white
+  bandana and age the face into a different man. Tightness is what to optimise.
+
+* THE TEMPLATE'S FACIAL HAIR BECOMES THE CUSTOMER'S. Any beard left OUTSIDE the
+  mask is a boundary Wan has to blend into, and it grows a matching beard on a
+  clean-shaven reference to make that blend work. Cover the beard completely or
+  expect to inherit it.
+
+* WATCH WHAT THE TEMPLATE CHARACTER DOES BEFORE TUNING ANYTHING. The pirate
+  REMOVES HIS HAT at ~4s, revealing long grey hair and a full grey beard. Half
+  the difficulty of that clip lives in those two seconds.
+
+* Wan Animate at cfg 1.0 -- which the distill LoRA forces -- IGNORES THE
+  NEGATIVE PROMPT ENTIRELY. The positive prompt still works. Do not spend time
+  writing negatives for this graph.
+
+* VHS_LoadVideo reads from ComfyUI's INPUT folder, never output. Stage 2 must
+  have stage 1's file uploaded to input first, or it fails "Invalid video file".
+
+* VHS_VideoCombine with audio wired writes TWO files: name.mp4 (silent) and
+  name-audio.mp4. Pick deliberately.
+
+* OPTIONAL GRAPH INPUTS FAIL SILENTLY WHEN UNWIRED. Sam2Segmentation accepted a
+  graph with coordinates_negative unconnected, reported no error, and discarded
+  every negative point for weeks. IF A SETTING SEEMS TO DO NOTHING, CHECK IT IS
+  ACTUALLY CONNECTED BEFORE TUNING IT.
+
+* Iterate on masks with a small preview graph (SAM -> GrowMask -> BlockifyMask
+  -> DrawMaskOnImage -> VideoCombine), never full renders. ~1 minute each
+  against ~20 for a render. Eleven variants cost less than one wrong render.
+
+* pkill -f "ComfyUI/main.py" MATCHES ITS OWN SSH WRAPPER and kills your shell.
+  Kill by PID.
+
+* Identity/sharpness trade off along ReActor boost visibility. Measured on the
+  same stage 1 output:
+      GFPGAN 1.0, raw source     identity 0.823  sharpness 797
+      GFPGAN 0.7, source @1024   identity 0.843  sharpness 550   <- shipped
+      GFPGAN 1.0, source @1024   identity 0.815  sharpness 908
+  0.84 is this pipeline's ceiling. 0.90 mean has never been reached; the best
+  ever recorded on any template is 0.880 (elf). The customer asked for >90%;
+  that has been reported to them as not currently achievable.
+
+* Render cost: ~20 min per 5-second video (13 stage 1 + 6 stage 2). Sampling is
+  only 8 steps x ~58s; everything else is model loading, SAM and pose. The app's
+  progress display now names those phases because they look like a hang.
+
+
+9. THE OPEN PROBLEM (state as of 2026-08-23)
+--------------------------------------------------------------------------------
+Customer complaint: "look at the beard, does my face have that kind of beard and
+hair". Both defects are understood. Neither is confirmed fixed.
+
+  a) THE BEARD. Wan gives the customer a heavier moustache and a chin patch the
+     reference does not have. Confirmed to originate in Wan itself, NOT the
+     ReActor polish: the raw stage 1 output already has it. Mechanism is the
+     boundary-blend bullet in §8 -- the template pirate's grey beard sits
+     outside the mask and Wan grows a beard to blend into it.
+  b) THE HAT. Destroyed near the end. The mask swallowed it, so when the
+     character takes it off, Wan renders a hallucinated black pompadour.
+
+ROOT CAUSE of (b) and a contributor to (a): coordinates_negative was NEVER
+wired into Sam2Segmentation. Every negative point -- including the one holding
+the hat out of the mask -- was silently discarded.
+
+Config B contains the fix:
+    - coordinates_negative wired to the PointsEditor's second output
+    - GrowMask.expand reduced 60 -> 24
+    - pirate.points.json extended with positives covering the whole beard
+Mask previews over all 81 frames confirm it keeps the hat, keeps the coat, and
+holds 15-38% coverage every frame with no dropouts. NOT RENDERED YET.
+
+REJECTED ON EVIDENCE -- DO NOT RETRY:
+  - Union of the SAM mask with a grown pose mask (~31% coverage). Rendered as
+    R1: invented a white bandana and aged the face. Worse than the bug it fixed.
+  - Pose-derived mask alone: drops to 0.5% coverage on frames where DWPose
+    loses the face, leaving the original character's head untouched.
+  - Extra "more hair" positive points: SAM jumps to the full body (66-72% of
+    frame) and the costume gets re-imagined. Widen with GrowMask instead.
+
+UNTRIED IDEAS, in the order worth trying:
+  1. Render config B and measure. Everything else is speculation until this is
+     done.
+  2. Feed Wan a TIGHT HEAD CROP of the customer's photo instead of the raw
+     selfie. The uploaded reference is 400x400 with the face only a small patch
+     of it, which is a weak identity signal. my_face_head.png in the project
+     root is such a crop. A render to test this (R2) was queued and lost when
+     the pod paused. This is generic and would help every customer.
+  3. The positive prompt still works at cfg 1.0 -- adding explicit appearance
+     words is a legitimate lever. Not generic across customers, so treat it as
+     a per-template fallback, not a fix.
+  4. ReActorMaskHelper / ReActorSetWeight can widen and strengthen the swap
+     region in stage 2, which is the only stage that can overwrite a chin the
+     first stage got wrong.
+
+NOTE ON TEMPLATE CHOICE: an old bearded man with long grey hair who removes his
+hat mid-shot is close to a worst case for this pipeline. Template framing drives
+quality more than any setting. Prefer clips where the character's head is
+already close in shape and hair to a typical customer.
+
+
+10. SECURITY
+--------------------------------------------------------------------------------
+backend/.env is gitignored and must never be committed. It currently holds a
+live GEMINI_API_KEY and POLLINATIONS_API_KEY. The test suite's own guard trips
+on the Gemini key ("a test leaked a real key"), which means it is reaching
+process environments. Those two, plus the RunPod API key previously found in
+the pod environment, were flagged for rotation and should be rotated.
+
+The client's Google login credentials were never used and should not be.
+================================================================================

@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <rect width="1024" height="1024" fill="#E11D28"/>
+  <g transform="translate(512 528) scale(1.2) translate(-512 -528)">
+
+  <!-- speed streaks -->
+  <g stroke="#F4626A" stroke-linecap="round" fill="none" opacity="0.45">
+    <path d="M120 700 L300 636" stroke-width="18"/>
+    <path d="M132 800 L318 730" stroke-width="24"/>
+    <path d="M196 884 L364 818" stroke-width="14"/>
+  </g>
+
+  <!-- ============ CAPE: broad fan, clearly wider than the body ============ -->
+  <path d="M642 336
+           C 548 350, 430 430, 330 540
+           C 252 626, 182 726, 176 792
+           C 236 786, 330 720, 404 656
+           C 300 776, 250 848, 258 878
+           C 340 848, 470 730, 560 610
+           C 620 528, 660 424, 662 348 Z"
+        fill="#A0101A"/>
+  <path d="M640 366
+           C 566 388, 470 462, 392 552
+           C 330 622, 278 700, 274 748
+           C 330 736, 412 668, 470 610
+           C 546 534, 606 448, 630 384 Z"
+        fill="#C51922"/>
+
+  <!-- ============ LEGS ============ -->
+  <g stroke="#161616" stroke-linecap="round" fill="none">
+    <path d="M486 528 C 424 606, 372 664, 336 700" stroke-width="72"/>
+    <path d="M446 500 C 386 578, 336 634, 300 668" stroke-width="66"/>
+  </g>
+  <path d="M336 700 C 314 720, 286 730, 268 716 C 258 698, 282 678, 306 664 Z" fill="#161616"/>
+  <path d="M300 668 C 280 688, 254 696, 238 684 C 228 668, 248 650, 270 638 Z" fill="#161616"/>
+
+  <!-- ============ TORSO ============ -->
+  <path d="M624 330
+           C 668 348, 690 384, 680 420
+           C 660 486, 586 556, 512 580
+           C 470 574, 440 546, 436 510
+           C 462 446, 540 364, 624 330 Z"
+        fill="#161616"/>
+
+  <!-- belt + buckle -->
+  <path d="M516 580 C 478 574, 448 552, 438 518 L 502 460 C 518 496, 544 524, 574 536 Z" fill="#E11D28"/>
+  <circle cx="510" cy="518" r="22" fill="#161616"/>
+
+  <!-- back arm tucked along the torso -->
+  <path d="M584 418 C 546 466, 508 504, 480 526" stroke="#161616" stroke-width="50" stroke-linecap="round" fill="none"/>
+  <circle cx="470" cy="536" r="30" fill="#F6C9A2"/>
+
+  <!-- ============ FRONT ARM: raised high, clear of the head ============ -->
+  <path d="M648 344 C 704 300, 752 250, 782 210" stroke="#161616" stroke-width="54" stroke-linecap="round" fill="none"/>
+  <circle cx="798" cy="188" r="40" fill="#F6C9A2"/>
+  <path d="M776 164 C 788 152, 808 152, 820 162" stroke="#E3AF85" stroke-width="8" fill="none" stroke-linecap="round"/>
+
+  <!-- collar flash -->
+  <path d="M612 326 C 636 324, 656 332, 670 348 L 634 380 C 624 356, 616 338, 612 326 Z" fill="#E11D28"/>
+
+  <!-- ============ HEAD ============ -->
+  <circle cx="566" cy="286" r="96" fill="#F6C9A2"/>
+  <circle cx="522" cy="316" r="17" fill="#EBB68F"/>
+
+  <!-- hair swoosh over the crown; face stays clear -->
+  <path d="M478 254
+           C 482 194, 532 156, 590 162
+           C 648 168, 678 206, 674 244
+           C 654 212, 614 194, 574 202
+           C 532 210, 498 230, 478 254 Z"
+        fill="#FFFFFF"/>
+  <path d="M674 232 C 696 222, 714 234, 714 254 C 714 274, 696 284, 678 278 Z" fill="#FFFFFF"/>
+  <path d="M478 254 C 466 262, 460 278, 466 292 C 476 286, 482 272, 484 260 Z" fill="#FFFFFF"/>
+
+  <!-- happy closed eyes -->
+  <path d="M540 282 C 552 268, 572 268, 582 282" stroke="#161616" stroke-width="10" fill="none" stroke-linecap="round"/>
+  <path d="M608 286 C 620 272, 638 272, 648 286" stroke="#161616" stroke-width="10" fill="none" stroke-linecap="round"/>
+
+  <!-- moustache -->
+  <path d="M530 342
+           C 550 326, 576 324, 592 336
+           C 608 324, 634 326, 652 342
+           C 636 366, 606 370, 592 354
+           C 578 370, 548 366, 530 342 Z"
+        fill="#FFFFFF"/>
+  <path d="M572 364 C 586 376, 608 376, 622 364" stroke="#161616" stroke-width="8" fill="none" stroke-linecap="round"/>
+
+  </g>
+</svg>

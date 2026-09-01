@@ -1,0 +1,69 @@
+{
+  "66": {
+    "class_type": "UNETLoader",
+    "inputs": { "unet_name": "z_image_turbo_bf16.safetensors", "weight_dtype": "default" },
+    "_meta": { "title": "Load Diffusion Model" }
+  },
+  "69": {
+    "class_type": "ModelSamplingAuraFlow",
+    "inputs": { "model": ["66", 0], "shift": 3.0 },
+    "_meta": { "title": "ModelSamplingAuraFlow" }
+  },
+  "62": {
+    "class_type": "CLIPLoader",
+    "inputs": { "clip_name": "qwen_3_4b.safetensors", "type": "lumina2", "device": "default" },
+    "_meta": { "title": "Load CLIP" }
+  },
+  "67": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "clip": ["62", 0],
+      "text": "anime RPG game style, cute anime girl with gigantic fennec ears and a big fluffy fox tail with long wavy blonde hair and large blue eyes blonde colored eyelashes wearing a pink sweater a large oversized gold trimmed black winter coat and a long blue maxi skirt and a red scarf, she is sitting beside a campfire in the wilderness at night playing guitar with a milky way galaxy sky"
+    },
+    "_meta": { "title": "FY_POSITIVE" }
+  },
+  "71": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "clip": ["62", 0],
+      "text": "low quality, bad anatomy, extra digits, missing digits, extra limbs, missing limbs"
+    },
+    "_meta": { "title": "FY_NEGATIVE" }
+  },
+  "68": {
+    "class_type": "EmptySD3LatentImage",
+    "inputs": { "width": 1024, "height": 1024, "batch_size": 1 },
+    "_meta": { "title": "FY_LATENT" }
+  },
+  "63": {
+    "class_type": "VAELoader",
+    "inputs": { "vae_name": "ae.safetensors" },
+    "_meta": { "title": "Load VAE" }
+  },
+  "70": {
+    "class_type": "KSampler",
+    "inputs": {
+      "model": ["69", 0],
+      "positive": ["67", 0],
+      "negative": ["71", 0],
+      "latent_image": ["68", 0],
+      "seed": 42,
+      "steps": 8,
+      "cfg": 1.0,
+      "sampler_name": "res_multistep",
+      "scheduler": "simple",
+      "denoise": 1.0
+    },
+    "_meta": { "title": "FY_SAMPLER" }
+  },
+  "65": {
+    "class_type": "VAEDecode",
+    "inputs": { "samples": ["70", 0], "vae": ["63", 0] },
+    "_meta": { "title": "VAE Decode" }
+  },
+  "9": {
+    "class_type": "SaveImage",
+    "inputs": { "images": ["65", 0], "filename_prefix": "ZImageFixed" },
+    "_meta": { "title": "FY_OUTPUT" }
+  }
+}

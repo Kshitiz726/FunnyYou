@@ -1,0 +1,5 @@
+# Only needed to run devstack/ — the local stand-ins for ComfyUI and Gemini.
+# Never installed on the GPU worker or the production API.
+-r requirements.txt
+pillow==11.3.0
+imageio-ffmpeg==0.6.0

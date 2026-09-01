@@ -1,0 +1,10 @@
+fastapi==0.118.0
+uvicorn[standard]==0.37.0
+python-multipart==0.0.20
+httpx==0.28.1
+websockets==15.0.1
+runpod==1.7.9
+pytest==8.4.2
+pytest-asyncio==1.2.0
+# Re-encodes face-swap previews from PNG to tile-sized JPEG.
+Pillow>=10.0

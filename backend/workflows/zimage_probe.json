@@ -1,0 +1,68 @@
+{
+  "1": {
+    "class_type": "UNETLoader",
+    "inputs": { "unet_name": "z_image_turbo_bf16.safetensors", "weight_dtype": "default" },
+    "_meta": { "title": "Load Diffusion Model" }
+  },
+  "2": {
+    "class_type": "ModelSamplingAuraFlow",
+    "inputs": { "model": ["1", 0], "shift": 3.0 },
+    "_meta": { "title": "ModelSamplingAuraFlow" }
+  },
+  "3": {
+    "class_type": "CLIPLoader",
+    "inputs": { "clip_name": "qwen_3_4b.safetensors", "type": "lumina2", "device": "default" },
+    "_meta": { "title": "Load CLIP" }
+  },
+  "4": {
+    "class_type": "CLIPTextEncode",
+    "inputs": { "clip": ["3", 0], "text": "a portrait photograph" },
+    "_meta": { "title": "FY_POSITIVE" }
+  },
+  "5": {
+    "class_type": "CLIPTextEncode",
+    "inputs": { "clip": ["3", 0], "text": "low quality, bad anatomy, extra limbs, watermark, text" },
+    "_meta": { "title": "FY_NEGATIVE" }
+  },
+  "6": {
+    "class_type": "LoadImage",
+    "inputs": { "image": "placeholder.jpg", "upload": "image" },
+    "_meta": { "title": "FY_INPUT_IMAGE" }
+  },
+  "7": {
+    "class_type": "VAELoader",
+    "inputs": { "vae_name": "ae.safetensors" },
+    "_meta": { "title": "Load VAE" }
+  },
+  "8": {
+    "class_type": "VAEEncode",
+    "inputs": { "pixels": ["6", 0], "vae": ["7", 0] },
+    "_meta": { "title": "VAE Encode" }
+  },
+  "9": {
+    "class_type": "KSampler",
+    "inputs": {
+      "model": ["2", 0],
+      "positive": ["4", 0],
+      "negative": ["5", 0],
+      "latent_image": ["8", 0],
+      "seed": 42,
+      "steps": 8,
+      "cfg": 1.0,
+      "sampler_name": "res_multistep",
+      "scheduler": "simple",
+      "denoise": 0.65
+    },
+    "_meta": { "title": "FY_SAMPLER" }
+  },
+  "10": {
+    "class_type": "VAEDecode",
+    "inputs": { "samples": ["9", 0], "vae": ["7", 0] },
+    "_meta": { "title": "VAE Decode" }
+  },
+  "11": {
+    "class_type": "SaveImage",
+    "inputs": { "images": ["10", 0], "filename_prefix": "FunnyYouProbe" },
+    "_meta": { "title": "FY_OUTPUT" }
+  }
+}

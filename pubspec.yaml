@@ -1,0 +1,48 @@
+name: funny_you
+description: "A new Flutter project."
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.12.2
+
+dependencies:
+  camera: ^0.12.0+2
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  gal: ^2.3.3
+  http: ^1.6.0
+  image_picker: ^1.2.3
+  path_provider: ^2.1.6
+  permission_handler: ^13.0.0
+  provider: ^6.1.5+1
+  share_plus: ^13.3.0
+  shared_preferences: ^2.5.5
+  speech_to_text: ^7.4.0
+  video_player: ^2.13.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  plugin_platform_interface: ^2.1.8
+  path_provider_platform_interface: ^2.1.3
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    # Optional reference artwork, one file per template id.
+    # See assets/templates/README.md — the UI falls back to a designed
+    # gradient placeholder for any id without a file.
+    - assets/templates/
+
+# Local toolchain workaround, not a project constraint.
+# permission_handler_android 14 compiles against Android API 37, and this
+# machine's SDK ships a malformed platform-37 package (source.properties
+# reports ApiLevel=37.0). 13.x builds cleanly against API 36.
+# Remove this override once the SDK has a valid android-37 platform.
+dependency_overrides:
+  permission_handler_android: ^13.0.0

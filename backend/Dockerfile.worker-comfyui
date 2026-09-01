@@ -1,0 +1,55 @@
+# RunPod Serverless worker for the character-swap pipeline.
+#
+#   docker build -f Dockerfile.worker-comfyui -t <you>/funnyyou-worker:v1 .
+#   docker push <you>/funnyyou-worker:v1
+#
+# Then paste <you>/funnyyou-worker:v1 into the endpoint's "Container image".
+#
+# Why this instead of backend/Dockerfile
+# --------------------------------------
+# `runpod/worker-comfyui` already accepts a full **API-format workflow** in the
+# request body — which is exactly what `workflows/wan22_animate.json` is. So the
+# custom handler in runpod_handler.py becomes unnecessary: the backend sends the
+# graph it already builds, plus the face and template clip as base64 images, and
+# gets the rendered video back. Fewer bespoke parts, and the worker itself is
+# maintained by RunPod.
+#
+# The one thing it gives up is sampler-level progress: RunPod's /status reports
+# IN_QUEUE / IN_PROGRESS / COMPLETED, not "37% through step 3". RenderService
+# already synthesises staged progress, so the bar still moves — it just stops
+# being frame-accurate during the render.
+#
+# Models are NOT baked in. They are ~35 GB and belong on a network volume, which
+# RunPod mounts at /runpod-volume. extra_model_paths.yaml below points ComfyUI
+# there, so the image stays small and cold starts stay survivable.
+
+FROM runpod/worker-comfyui:main-base
+
+# The four packs the client's Wan Animate graph needs. Determined by diffing the
+# workflow's node types against a live /object_info — not guessed. Pinned by
+# clone so a rebuild months from now still produces the same worker.
+RUN set -eux; \
+    cd /comfyui/custom_nodes; \
+    git clone --depth 1 https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite.git; \
+    git clone --depth 1 https://github.com/kijai/ComfyUI-segment-anything-2.git; \
+    git clone --depth 1 https://github.com/Fannovel16/comfyui_controlnet_aux.git; \
+    git clone --depth 1 https://github.com/kijai/ComfyUI-WanVideoWrapper.git; \
+    git clone --depth 1 https://github.com/kijai/ComfyUI-KJNodes.git; \
+    for d in */; do \
+        if [ -f "$d/requirements.txt" ]; then \
+            pip install --no-cache-dir -r "$d/requirements.txt" || \
+            echo "WARN: optional deps failed for $d"; \
+        fi; \
+    done
+
+# ComfyUI reads models from the network volume rather than the image.
+COPY extra_model_paths.yaml /comfyui/extra_model_paths.yaml
+
+# Shipped so the graph can be inspected or run from inside the worker; the
+# backend normally sends the workflow in the request instead.
+COPY workflows /workflows
+
+# Sanity-check at build time that the packs actually import. A node that fails
+# to load here would otherwise surface as a confusing "node type not found"
+# on the first real render, after a 90-second cold start.
+RUN python -c "import cv2, onnxruntime" || echo "WARN: vision deps missing"

@@ -1,0 +1,156 @@
+{
+  "1": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": "qwen_base.png"
+    },
+    "_meta": {
+      "title": "base"
+    }
+  },
+  "2": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": "my_face.jpg"
+    },
+    "_meta": {
+      "title": "src"
+    }
+  },
+  "3": {
+    "class_type": "ImageScale",
+    "inputs": {
+      "image": [
+        "2",
+        0
+      ],
+      "upscale_method": "lanczos",
+      "width": 1024,
+      "height": 1024,
+      "crop": "disabled"
+    },
+    "_meta": {
+      "title": "up"
+    }
+  },
+  "A": {
+    "class_type": "ReActorFaceSwap",
+    "inputs": {
+      "enabled": true,
+      "input_image": [
+        "1",
+        0
+      ],
+      "source_image": [
+        "3",
+        0
+      ],
+      "swap_model": "inswapper_128.onnx",
+      "facedetection": "retinaface_resnet50",
+      "face_restore_model": "codeformer-v0.1.0.pth",
+      "face_restore_visibility": 0.0,
+      "codeformer_weight": 1.0,
+      "detect_gender_input": "no",
+      "detect_gender_source": "no",
+      "input_faces_index": "0",
+      "source_faces_index": "0",
+      "console_log_level": 1
+    },
+    "_meta": {
+      "title": "swap"
+    }
+  },
+  "B": {
+    "class_type": "ReActorFaceSwap",
+    "inputs": {
+      "enabled": true,
+      "input_image": [
+        "1",
+        0
+      ],
+      "source_image": [
+        "3",
+        0
+      ],
+      "swap_model": "inswapper_128.onnx",
+      "facedetection": "retinaface_resnet50",
+      "face_restore_model": "codeformer-v0.1.0.pth",
+      "face_restore_visibility": 0.35,
+      "codeformer_weight": 1.0,
+      "detect_gender_input": "no",
+      "detect_gender_source": "no",
+      "input_faces_index": "0",
+      "source_faces_index": "0",
+      "console_log_level": 1
+    },
+    "_meta": {
+      "title": "swap"
+    }
+  },
+  "C": {
+    "class_type": "ReActorFaceSwap",
+    "inputs": {
+      "enabled": true,
+      "input_image": [
+        "1",
+        0
+      ],
+      "source_image": [
+        "2",
+        0
+      ],
+      "swap_model": "inswapper_128.onnx",
+      "facedetection": "retinaface_resnet50",
+      "face_restore_model": "codeformer-v0.1.0.pth",
+      "face_restore_visibility": 0.35,
+      "codeformer_weight": 1.0,
+      "detect_gender_input": "no",
+      "detect_gender_source": "no",
+      "input_faces_index": "0",
+      "source_faces_index": "0",
+      "console_log_level": 1
+    },
+    "_meta": {
+      "title": "swap"
+    }
+  },
+  "SA": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "images": [
+        "A",
+        0
+      ],
+      "filename_prefix": "var_A"
+    },
+    "_meta": {
+      "title": "outA"
+    }
+  },
+  "SB": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "images": [
+        "B",
+        0
+      ],
+      "filename_prefix": "var_B"
+    },
+    "_meta": {
+      "title": "outB"
+    }
+  },
+  "SC": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "images": [
+        "C",
+        0
+      ],
+      "filename_prefix": "var_C"
+    },
+    "_meta": {
+      "title": "outC"
+    }
+  }
+}

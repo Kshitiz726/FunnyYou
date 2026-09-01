@@ -1,0 +1,47 @@
+{
+  "_comment": "KNOWN GOOD. These are the points in effect for the render delivered in the app on 2026-08-23 (job 96e80385...). Note the graph of that era did NOT wire coordinates_negative into Sam2Segmentation, so the negatives below were inert -- they are preserved verbatim so the result is reproducible, not because they did anything. Normalised 0..1, authored at 480x832.",
+  "positive": [
+    {
+      "x": 0.4479,
+      "y": 0.2344
+    },
+    {
+      "x": 0.6354,
+      "y": 0.2825
+    },
+    {
+      "x": 0.375,
+      "y": 0.3005
+    }
+  ],
+  "negative": [
+    {
+      "x": 0.4479,
+      "y": 0.5168
+    },
+    {
+      "x": 0.7292,
+      "y": 0.655
+    },
+    {
+      "x": 0.2292,
+      "y": 0.5649
+    },
+    {
+      "x": 0.8542,
+      "y": 0.5168
+    },
+    {
+      "x": 0.125,
+      "y": 0.0721
+    },
+    {
+      "x": 0.9271,
+      "y": 0.3606
+    },
+    {
+      "x": 0.5208,
+      "y": 0.1262
+    }
+  ]
+}
