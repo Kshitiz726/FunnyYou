@@ -6,47 +6,86 @@ import '../../../core/theme/app_theme.dart';
 ///
 /// Drawn with widgets rather than shipped as PNGs so it stays crisp at every
 /// device scale and adds nothing to the bundle.
+///
+/// **Always laid out at [designWidth].** The scenes inside are composed in
+/// absolute pixels — 13pt labels, a 38px shutter, an 84px progress ring — and
+/// those numbers are only right at one width. Building the frame narrower does
+/// not shrink them with it: the type stays the same size in a smaller phone,
+/// captions ellipsise, and the whole thing reads as squashed. So callers never
+/// pick a width. They wrap the finished mockup in a `FittedBox` and scale it
+/// like a photograph, which keeps every proportion exactly as drawn.
 class PhoneMockup extends StatelessWidget {
   const PhoneMockup({
     super.key,
     required this.child,
     this.background = AppColors.surface,
-    this.width = 216,
     this.showStatusBar = true,
     this.statusBarDark = false,
   });
 
+  /// The one width every scene is composed against.
+  static const double designWidth = 216;
+
+  /// 19.5:9, the proportions of every iPhone since the X. The frame used to be
+  /// 2.05, which is squatter than any real handset and was the first thing that
+  /// gave the mockup away.
+  static const double aspectRatio = 2.165;
+
+  static const double designHeight = designWidth * aspectRatio;
+
   final Widget child;
   final Color background;
-  final double width;
   final bool showStatusBar;
   final bool statusBarDark;
 
+  // Every metric below is a fraction of the width, so the frame stays a true
+  // scale model if the design width is ever changed.
+  static const double _bezel = designWidth * 0.033;
+  static const double _outerRadius = designWidth * 0.20;
+  static const double _statusBarHeight = designWidth * 0.125;
+  static const double _islandWidth = designWidth * 0.30;
+  static const double _islandHeight = designWidth * 0.082;
+  static const double _islandTop = designWidth * 0.030;
+
   @override
   Widget build(BuildContext context) {
-    final height = width * 2.05;
-
     return Container(
-      width: width,
-      height: height,
-      padding: const EdgeInsets.all(7),
+      width: designWidth,
+      height: designHeight,
+      padding: const EdgeInsets.all(_bezel),
       decoration: BoxDecoration(
-        color: const Color(0xFF141414),
-        borderRadius: BorderRadius.circular(width * 0.19),
+        // A flat black slab reads as a drawing. Two stops and a hairline
+        // highlight down the side read as a machined edge catching the light.
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF2C2C2E), Color(0xFF0E0E0F)],
+        ),
+        borderRadius: BorderRadius.circular(_outerRadius),
+        border: Border.all(color: const Color(0xFF48484A), width: 0.8),
         boxShadow: AppShadows.raised,
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(width * 0.155),
+        borderRadius: BorderRadius.circular(_outerRadius - _bezel),
         child: ColoredBox(
           color: background,
           child: Stack(
             children: [
               Positioned.fill(
                 child: Padding(
-                  padding: EdgeInsets.only(top: showStatusBar ? 26 : 0),
+                  padding: EdgeInsets.only(
+                    top: showStatusBar ? _statusBarHeight : 0,
+                  ),
                   child: child,
                 ),
               ),
+              if (showStatusBar)
+                const Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: SizedBox(height: _statusBarHeight),
+                ),
               if (showStatusBar)
                 Positioned(
                   top: 0,
@@ -54,17 +93,28 @@ class PhoneMockup extends StatelessWidget {
                   right: 0,
                   child: _StatusBar(dark: statusBarDark),
                 ),
-              Positioned(
-                top: 6,
+              const Positioned(
+                top: _islandTop,
                 left: 0,
                 right: 0,
                 child: Center(
-                  child: Container(
-                    width: width * 0.26,
-                    height: 18,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF141414),
-                      borderRadius: BorderRadius.circular(12),
+                  child: SizedBox(
+                    width: _islandWidth,
+                    height: _islandHeight,
+                    // Pure black alone vanishes on the dark scenes — the
+                    // island was visible on two of the four cards and gone on
+                    // the other two, which reads as a rendering bug. The
+                    // hairline gives it an edge to catch on any background.
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: Color(0xFF000000),
+                        borderRadius: BorderRadius.all(
+                          Radius.circular(_islandHeight),
+                        ),
+                        border: Border.fromBorderSide(
+                          BorderSide(color: Color(0x24FFFFFF), width: 0.7),
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -86,7 +136,7 @@ class _StatusBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = dark ? Colors.white : AppColors.ink;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      padding: const EdgeInsets.fromLTRB(15, 7, 15, 0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [

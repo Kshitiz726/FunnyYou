@@ -6,6 +6,7 @@ import '../../core/i18n/strings.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/backdrop.dart';
+import 'widgets/phone_mockup.dart';
 import 'widgets/step_scenes.dart';
 
 /// First-run experience: a hero page followed by the four steps of the flow.
@@ -418,30 +419,32 @@ class _StepPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        // Shrink the mockup on small phones so copy is never clipped.
-        final mockupWidth =
-            (constraints.maxHeight * 0.24).clamp(150.0, 210.0).toDouble();
-
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Flexible(
-                child: FadeSlideIn(
-                  key: ValueKey('scene-${step.step}'),
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: SizedBox(
-                      width: mockupWidth,
-                      child: step.scene,
-                    ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // The mockup is drawn once at its design size and then scaled whole,
+          // the way you would resize a photograph. Rebuilding it narrower —
+          // which is what happened before — left every label, button and ring
+          // inside at its authored pixel size, so the frame shrank around
+          // contents that did not, and captions ellipsised.
+          Expanded(
+            child: FadeSlideIn(
+              key: ValueKey('scene-${step.step}'),
+              child: Center(
+                child: FittedBox(
+                  fit: BoxFit.contain,
+                  child: SizedBox(
+                    width: PhoneMockup.designWidth,
+                    height: PhoneMockup.designHeight,
+                    child: step.scene,
                   ),
                 ),
               ),
-              const SizedBox(height: AppSpacing.xl),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xl),
               FadeSlideIn(
                 key: ValueKey('badge-${step.step}'),
                 delay: const Duration(milliseconds: 60),
@@ -483,11 +486,9 @@ class _StepPage extends StatelessWidget {
                   textAlign: TextAlign.center,
                   style: AppTypography.body.copyWith(fontSize: 17),
                 ),
-              ),
-            ],
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 }
