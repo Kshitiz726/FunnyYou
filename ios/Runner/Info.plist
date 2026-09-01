@@ -28,6 +28,16 @@
 	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<!-- USE_LOCAL_BACKEND points debug builds at http://127.0.0.1:8000.
+	     App Transport Security blocks cleartext HTTP by default, including
+	     loopback, so without this the local backend fails to connect with no
+	     visible reason. Release builds talk to an https pod URL and are
+	     unaffected — this grants nothing beyond the local network. -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
 	<key>NSCameraUsageDescription</key>
 	<string>Funny You needs your camera to take the photo we put into your funny video.</string>
 	<key>NSMicrophoneUsageDescription</key>

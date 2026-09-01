@@ -69,19 +69,44 @@ class _ResultScreenState extends State<ResultScreen> {
     super.dispose();
   }
 
+  final _shareButtonKey = GlobalKey();
+
+  /// Where the iPad popover points. Falls back to the screen centre if the
+  /// button has not been laid out, which is better than passing null.
+  Rect _shareOrigin() {
+    final box = _shareButtonKey.currentContext?.findRenderObject();
+    if (box is RenderBox && box.hasSize) {
+      return box.localToGlobal(Offset.zero) & box.size;
+    }
+    final size = MediaQuery.of(context).size;
+    return Rect.fromCenter(
+      center: size.center(Offset.zero),
+      width: 1,
+      height: 1,
+    );
+  }
+
   Future<void> _share() async {
     HapticFeedback.lightImpact();
     final text = '${context.s.shareText(widget.creation.title)}!';
+
+    // iPad presents the share sheet as a popover and needs something to
+    // point it at. Omitting the origin is not a layout nit there — UIKit
+    // raises, and the share button simply crashes the app.
+    final origin = _shareOrigin();
 
     if (_hasVideo) {
       await SharePlus.instance.share(
         ShareParams(
           text: text,
           files: [XFile(widget.creation.videoPath!)],
+          sharePositionOrigin: origin,
         ),
       );
     } else {
-      await SharePlus.instance.share(ShareParams(text: text));
+      await SharePlus.instance.share(
+        ShareParams(text: text, sharePositionOrigin: origin),
+      );
     }
   }
 
@@ -208,6 +233,7 @@ class _ResultScreenState extends State<ResultScreen> {
                       ),
                       const SizedBox(height: AppSpacing.lg),
                       PrimaryButton(
+                        key: _shareButtonKey,
                         label: s.shareVideo,
                         icon: Icons.ios_share_rounded,
                         onPressed: _share,

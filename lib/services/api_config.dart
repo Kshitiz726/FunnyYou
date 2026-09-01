@@ -10,15 +10,23 @@ import 'package:flutter/foundation.dart';
 ///   --dart-define=API_KEY=...
 /// ```
 ///
-/// In a **release** build with nothing defined the app runs on mocks, which is
-/// what makes the whole flow demoable with no backend at all.
+/// With nothing defined the app runs on mocks, which is what makes the whole
+/// flow demoable on a fresh clone with no backend, no GPU and no keys — just
+/// `flutter run`. The mock plays every stage and lands on the result screen
+/// without a video file, so nothing pretends a render happened.
 ///
-/// A **debug** build instead points at a backend on the dev machine. Mocks
-/// fabricate a finished render — poster art, "Your video is ready!", a Share
-/// button — which is indistinguishable from a real result at a glance. During
-/// development that is a trap: it reads as "the pipeline works" when nothing
-/// was rendered at all. Defaulting debug builds to localhost means a missing
-/// backend surfaces as a connection error, which is the truth.
+/// Pointing a **debug** build at a backend on the dev machine is a deliberate
+/// act, not the default:
+///
+/// ```
+/// flutter run --dart-define=USE_LOCAL_BACKEND=true
+/// ```
+///
+/// It is opt-in because mocks fabricate a convincing finished flow, and while
+/// developing the pipeline that is a trap — it reads as "the pipeline works"
+/// when nothing was rendered. Asking for the local backend explicitly means a
+/// missing one surfaces as a connection error, which is the truth. Asking for
+/// nothing means the app just runs.
 abstract final class ApiConfig {
   static const _definedBaseUrl = String.fromEnvironment('API_BASE_URL');
   static const apiKey = String.fromEnvironment('API_KEY');
@@ -29,9 +37,12 @@ abstract final class ApiConfig {
   /// Desktop and iOS simulator share the host's loopback.
   static const localHostUrl = 'http://127.0.0.1:8000';
 
+  static const _useLocalBackend =
+      bool.fromEnvironment('USE_LOCAL_BACKEND');
+
   static String get baseUrl {
     if (_definedBaseUrl.isNotEmpty) return _definedBaseUrl;
-    if (!kDebugMode) return '';
+    if (!kDebugMode || !_useLocalBackend) return '';
     return defaultTargetPlatform == TargetPlatform.android
         ? localEmulatorUrl
         : localHostUrl;

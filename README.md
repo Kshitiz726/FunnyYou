@@ -10,45 +10,80 @@ be exercised without a Mac.
 
 ---
 
-## Running it
+## Run it on an iPhone
 
-**On Windows, right now** (design review; camera falls back to the photo
-picker):
-
-```bash
-flutter run -d windows
-```
-
-Or on an Android device/emulator, where the camera, gallery, voice input and
-"save to gallery" all work for real:
+Nothing to configure. A fresh clone builds and runs on its own — no backend, no
+GPU, no API keys. You need a Mac with Xcode and Flutter installed.
 
 ```bash
-flutter run -d android
-```
-
-**On iOS** (needs a Mac with Xcode):
-
-```bash
+git clone https://github.com/Kshitiz726/FunnyYou.git
+cd FunnyYou
+flutter pub get
 cd ios && pod install && cd ..
-flutter run -d ios
+open ios/Runner.xcworkspace
 ```
 
-Then in Xcode set your team under *Runner → Signing & Capabilities*. Deployment
-target is iOS 14.0.
+In Xcode, once: select **Runner → Signing & Capabilities → Team** and pick your
+Apple ID. That is the only manual step, and Xcode cannot be scripted past it —
+an iPhone will not run an unsigned build. Then plug the phone in, choose it in
+the toolbar, and press ▶.
 
-**With a working backend**, no GPU and no API key needed — the dev stack runs
-the real API against local stand-ins for ComfyUI and Gemini:
+Or from the terminal, with the phone plugged in and the team already set:
+
+```bash
+flutter run -d iphone
+```
+
+Deployment target is iOS 14.0. The simulator works too, minus the camera —
+there it falls back to the photo picker.
+
+### What you get with no backend
+
+The full journey: onboarding, camera and face guide, all 40 scenarios,
+the paywall, the progress screen with its stages and ETA, and the result
+screen. The render itself is mocked, so the result screen arrives with no
+video file and says so rather than showing you a fake one. This is the mode to
+use for judging the app — the screens, the flow, the feel.
+
+### Pointing it at the real renderer
+
+When the GPU pod is up, pass its URL at build time and the same binary does
+real renders:
+
+```bash
+flutter run -d iphone   --dart-define=API_BASE_URL=https://<your-pod>-8000.proxy.runpod.net   --dart-define=API_KEY=<key>
+```
+
+Only scenarios with a template clip *and* click points on the server can
+actually be rendered; the app asks `/v1/health` at launch and marks the rest
+"Soon" rather than letting you spend a credit to find out. See
+[backend/README.md](backend/README.md).
+
+For a backend on your own machine instead, run the dev stack — it serves the
+real API against local stand-ins for ComfyUI and Gemini, so no GPU or key is
+needed:
 
 ```bash
 cd backend && pip install -r requirements-dev.txt && python -m devstack.run
 ```
 
 ```bash
-flutter run -d android --dart-define=API_BASE_URL=http://10.0.2.2:8000
+flutter run --dart-define=USE_LOCAL_BACKEND=true
 ```
 
-Previews now fill the grid with real generated JPEGs and "Make video" produces a
-real playable MP4. See [backend/README.md](backend/README.md).
+`USE_LOCAL_BACKEND` is opt-in on purpose. Mocks fabricate a convincing flow,
+and while developing the pipeline that reads as "it works" when nothing was
+rendered — so a debug build talks to localhost only when asked, and a missing
+backend then shows an honest connection error.
+
+## Other platforms
+
+Android and Windows exist so the flow can be exercised without a Mac:
+
+```bash
+flutter run -d android
+flutter run -d windows
+```
 
 > **Android emulator camera.** A fresh AVD ships with `hw.camera.front = none`
 > and a synthetic green test scene on the back camera, which makes a selfie app
