@@ -56,6 +56,23 @@ class _PhotoIntroScreenState extends State<PhotoIntroScreen> {
     );
   }
 
+  /// One slide at a time, then out of the screen.
+  ///
+  /// Backing straight out from the permission slide would throw away the slide
+  /// the user has just read, which is the one thing they would want to look at
+  /// again.
+  void _back() {
+    if (_onPermissionSlide) {
+      HapticFeedback.selectionClick();
+      _controller.previousPage(
+        duration: AppDuration.base,
+        curve: Curves.easeOutCubic,
+      );
+      return;
+    }
+    Navigator.of(context).pop();
+  }
+
   Future<void> _takePhoto() async {
     setState(() => _requesting = true);
 
@@ -119,10 +136,10 @@ class _PhotoIntroScreenState extends State<PhotoIntroScreen> {
                   padding: const EdgeInsets.fromLTRB(12, 8, 20, 0),
                   child: Row(
                     children: [
-                      if (Navigator.of(context).canPop())
+                      if (_onPermissionSlide || Navigator.of(context).canPop())
                         CircleIconButton(
                           icon: Icons.arrow_back_ios_new_rounded,
-                          onPressed: () => Navigator.of(context).pop(),
+                          onPressed: _back,
                         ),
                       const Spacer(),
                       _PageDots(page: _page, count: 2),

@@ -95,17 +95,38 @@ class _QuickPickScreenState extends State<QuickPickScreen> {
           child: SafeArea(
             child: Column(
               children: [
+                // The back button shares the title's row rather than taking
+                // one of its own. iOS has no hardware back and this route has
+                // no nav bar, so the button has to exist -- but a whole extra
+                // row of chrome pushed the third tile row's labels under the
+                // More scenarios button, and six tiles fitting without
+                // scrolling is the entire point of this screen.
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.lg,
-                    AppSpacing.md,
-                    AppSpacing.lg,
-                    AppSpacing.sm,
-                  ),
-                  child: Text(
-                    s.chooseYourScenario,
-                    textAlign: TextAlign.center,
-                    style: AppTypography.display.copyWith(fontSize: 28),
+                  padding: const EdgeInsets.fromLTRB(12, 8, 12, AppSpacing.sm),
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 44,
+                        child: Navigator.of(context).canPop()
+                            ? CircleIconButton(
+                                icon: Icons.arrow_back_ios_new_rounded,
+                                onPressed: () => Navigator.of(context).pop(),
+                              )
+                            : null,
+                      ),
+                      Expanded(
+                        child: Text(
+                          s.chooseYourScenario,
+                          textAlign: TextAlign.center,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTypography.display.copyWith(fontSize: 26),
+                        ),
+                      ),
+                      // Balances the button so the title is centred on the
+                      // screen rather than on the space left over.
+                      const SizedBox(width: 44),
+                    ],
                   ),
                 ),
                 Expanded(

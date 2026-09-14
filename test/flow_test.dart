@@ -1,4 +1,4 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:funny_you/app/app.dart';
 import 'package:funny_you/data/templates.dart';
@@ -165,6 +165,16 @@ void main() {
     expect(find.byType(QuickPickScreen), findsOneWidget);
     expect(find.text('Choose your scenario'), findsOneWidget);
     expect(find.text('More scenarios'), findsOneWidget);
+
+    // iOS has no hardware back and this route has no nav bar, so the button is
+    // the only way out. Without it the screen is a dead end on the platform
+    // the app ships on.
+    await tester.tap(find.byIcon(Icons.arrow_back_ios_new_rounded));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(find.byType(QuickPickScreen), findsNothing);
+    expect(find.byType(HomeShell), findsOneWidget);
   });
 
   test('the catalogue holds 40 templates across every category', () {
