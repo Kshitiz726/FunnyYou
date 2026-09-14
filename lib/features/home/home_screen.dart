@@ -82,7 +82,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: FadeSlideIn(
                       child: _HeroCard(
                         facePhotoPath: state.facePhotoPath,
-                        onCreate: () => _openPicker(context),
+                        onCreate: () => _startCreation(context),
                         onChangePhoto: () =>
                             CreationFlow.retakePhoto(context),
                       ),
@@ -179,6 +179,24 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  /// The primary "make me a video" button.
+  ///
+  /// It used to push the 40 tile catalogue directly, which skipped the whole
+  /// flow: no ad, and the simple four scenario screen never appeared. Going
+  /// through [CreationFlow] means this button and the first run take exactly
+  /// the same path.
+  ///
+  /// The draft is cleared first because a scenario selected for the *last*
+  /// video is still in memory, and the flow skips the picker when one is set,
+  /// so without this the second video silently reuses the first one's
+  /// scenario.
+  Future<void> _startCreation(BuildContext context) async {
+    context.read<AppState>().clearDraft();
+    await CreationFlow.start(context);
+  }
+
+  /// Browse everything. Reached from "View all" and the Scenarios tile, which
+  /// are explicitly asking for the full catalogue rather than a shortlist.
   Future<void> _openPicker(BuildContext context) async {
     final template = await Navigator.of(context).push<VideoTemplate>(
       MaterialPageRoute(builder: (_) => const TemplatePickerScreen()),

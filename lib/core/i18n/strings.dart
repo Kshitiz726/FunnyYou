@@ -108,7 +108,7 @@ class S {
   String get welcomeQuestion => _da
       ? 'Er du klar til at lave nogle helt vilde scenarier?'
       : 'Are you ready to make some unbelievable scenarios?';
-  String get yes => _da ? 'Ja!' : 'Yes!';
+  String get yes => _da ? 'Ja' : 'Yes';
   String get skip => _da ? 'Spring over' : 'Skip';
   String get next => _da ? 'Næste' : 'Next';
   String get getStarted => _da ? 'Kom i gang' : 'Get Started';

@@ -27,9 +27,15 @@ import 'widgets/template_tile.dart';
 class QuickPickScreen extends StatefulWidget {
   const QuickPickScreen({super.key});
 
-  /// How many scenarios get a tile here. Six fills a 2x3 grid on every phone
-  /// we support without scrolling, which is the point of the screen.
-  static const int shortlistLength = 6;
+  /// How many scenarios get a tile here.
+  ///
+  /// Four, because the brief is "4 images based on the users face" and there
+  /// are exactly five face previews generated after the selfie
+  /// (`TemplateCatalog.previewSet`). Six tiles meant the sixth had no preview
+  /// to show and fell back to stock artwork, so one of the images on the
+  /// post-selfie screen was not the user. A 2x2 grid also gives each image
+  /// twice the area, which is the whole reason they are there.
+  static const int shortlistLength = 4;
 
   @override
   State<QuickPickScreen> createState() => _QuickPickScreenState();
@@ -45,12 +51,12 @@ class _QuickPickScreenState extends State<QuickPickScreen> {
     unawaited(ServiceLocator.instance.backend.refreshIfUnknown());
   }
 
-  /// Prefer scenarios we already have a preview of the user's own face for.
+  /// The scenarios we have a preview of the user's own face for, first.
   ///
   /// Those are the tiles that sell the product: seeing your face as an
-  /// astronaut is the whole pitch, and a gradient placeholder is not. The rest
-  /// of the slots are filled from the front of the catalogue, which is
-  /// hand-ordered with the strongest scenarios first.
+  /// astronaut is the whole pitch, and a gradient placeholder is not. There
+  /// are five previews and four slots, so in practice every tile here is the
+  /// user. The fallback only matters if a preview failed to generate.
   List<VideoTemplate> _shortlist() {
     final previews = ServiceLocator.instance.previewStore;
     final withPreview = <VideoTemplate>[];
@@ -64,7 +70,10 @@ class _QuickPickScreenState extends State<QuickPickScreen> {
       }
     }
 
-    return [...withPreview, ...rest].take(QuickPickScreen.shortlistLength).toList();
+    return [
+      ...withPreview,
+      ...rest,
+    ].take(QuickPickScreen.shortlistLength).toList();
   }
 
   void _choose(VideoTemplate template) {
@@ -135,33 +144,61 @@ class _QuickPickScreenState extends State<QuickPickScreen> {
                       horizontal: AppSpacing.lg,
                     ),
                     // Previews arrive one at a time after the selfie, and
-                    // each arrival can change which six scenarios lead, so the
-                    // shortlist is rebuilt whenever the store moves.
+                    // each arrival can change which four scenarios lead, so
+                    // the shortlist is rebuilt whenever the store moves.
                     child: AnimatedBuilder(
                       animation: previews,
                       builder: (context, _) {
                         final shortlist = _shortlist();
-                        return GridView.builder(
-                          padding:
-                              const EdgeInsets.only(bottom: AppSpacing.md),
-                          physics: const BouncingScrollPhysics(),
-                          itemCount: shortlist.length,
-                          gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            mainAxisSpacing: AppSpacing.md,
-                            crossAxisSpacing: AppSpacing.md,
-                            childAspectRatio: 0.78,
+                        // Centred, not top-aligned: four tiles do not fill a
+                        // phone the way six did, and left at the top they sat
+                        // under a band of empty space.
+                        //
+                        // The minHeight is what does the centring. A
+                        // SingleChildScrollView hands its child unbounded
+                        // height, so a bare Center inside one has nothing to
+                        // centre against and silently does nothing. Giving the
+                        // child at least the viewport's height gives Center
+                        // something to work with, while still letting the grid
+                        // grow and scroll at the largest text sizes.
+                        return LayoutBuilder(
+                          builder: (context, viewport) => SingleChildScrollView(
+                            physics: const BouncingScrollPhysics(),
+                            child: ConstrainedBox(
+                              constraints: BoxConstraints(
+                                minHeight: viewport.maxHeight,
+                              ),
+                              child: Center(
+                                child: GridView.builder(
+                                  shrinkWrap: true,
+                                  padding: const EdgeInsets.only(
+                                    bottom: AppSpacing.md,
+                                  ),
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  itemCount: shortlist.length,
+                                  gridDelegate:
+                                      const SliverGridDelegateWithFixedCrossAxisCount(
+                                        crossAxisCount: 2,
+                                        mainAxisSpacing: AppSpacing.md,
+                                        crossAxisSpacing: AppSpacing.md,
+                                        // Taller than the catalogue's tiles: two rows have
+                                        // the room, and these four are meant to be looked
+                                        // at rather than scanned past.
+                                        childAspectRatio: 0.68,
+                                      ),
+                                  itemBuilder: (context, index) {
+                                    final template = shortlist[index];
+                                    return TemplateTile(
+                                      template: template,
+                                      facePhotoPath: facePhoto,
+                                      selected: false,
+                                      onTap: () => _choose(template),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
                           ),
-                          itemBuilder: (context, index) {
-                            final template = shortlist[index];
-                            return TemplateTile(
-                              template: template,
-                              facePhotoPath: facePhoto,
-                              selected: false,
-                              onTap: () => _choose(template),
-                            );
-                          },
                         );
                       },
                     ),

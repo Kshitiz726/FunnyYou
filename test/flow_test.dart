@@ -45,7 +45,7 @@ void main() {
       find.text('Are you ready to make some unbelievable scenarios?'),
       findsOneWidget,
     );
-    expect(find.text('Yes!'), findsOneWidget);
+    expect(find.text('Yes'), findsOneWidget);
     // The product tour used to live here and does not any more.
     expect(find.text('Next'), findsNothing);
     expect(find.text('Skip'), findsNothing);
@@ -56,7 +56,7 @@ void main() {
     await tester.pumpWidget(FunnyYouApp(state: await _state({})));
     await tester.pump();
 
-    await tester.tap(find.text('Yes!'));
+    await tester.tap(find.text('Yes'));
     // Not pumpAndSettle: the ambient backdrop animates forever by design, so
     // settling would never complete.
     await tester.pump();
@@ -75,7 +75,7 @@ void main() {
     await tester.pumpWidget(FunnyYouApp(state: await _state({})));
     await tester.pump();
 
-    await tester.tap(find.text('Yes!'));
+    await tester.tap(find.text('Yes'));
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
 
@@ -149,7 +149,7 @@ void main() {
     );
     await tester.pump();
 
-    await tester.tap(find.text('Yes!'));
+    await tester.tap(find.text('Yes'));
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
 
@@ -196,6 +196,18 @@ void main() {
       expect(template.prompt.trim(), isNotEmpty);
       expect(template.gradient, hasLength(2));
     }
+  });
+
+  test('every tile on the post-selfie screen can show the user', () {
+    // The brief is "4 images based on the users face". Each tile needs a
+    // generated preview to be that, and previews are expensive, so there is a
+    // fixed number of them. More tiles than previews means a tile falls back
+    // to stock artwork and the screen quietly stops being about the user.
+    expect(
+      QuickPickScreen.shortlistLength,
+      lessThanOrEqualTo(TemplateCatalog.previewSet.length),
+      reason: 'a tile without a preview shows someone else',
+    );
   });
 
   test('credits gate generation', () async {
