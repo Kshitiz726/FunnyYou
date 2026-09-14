@@ -105,9 +105,10 @@ class S {
 
   // ── Onboarding ────────────────────────────────────────────────────────
   String get welcomeTo => _da ? 'Velkommen til' : 'Welcome to';
-  String get welcomeBody => _da
-      ? 'Lav en sjov video ud af ét billede af dig selv —\ni fire nemme trin.'
-      : 'Turn one photo of yourself into a funny video —\nin four easy steps.';
+  String get welcomeQuestion => _da
+      ? 'Er du klar til at lave nogle helt vilde scenarier?'
+      : 'Are you ready to make some unbelievable scenarios?';
+  String get yes => _da ? 'Ja!' : 'Yes!';
   String get skip => _da ? 'Spring over' : 'Skip';
   String get next => _da ? 'Næste' : 'Next';
   String get getStarted => _da ? 'Kom i gang' : 'Get Started';
@@ -160,15 +161,14 @@ class S {
 
   // ── Photo capture ─────────────────────────────────────────────────────
   String get photoIntroBody => _da
-      ? 'For at lave en sjov video med dig i skal vi vide, hvordan du ser ud.'
-      : 'To make a funny video with you in it, we need to know what you '
-          'look like.';
-  String get photoIntroBody2 => _da
-      ? 'Ét tydeligt billede af dit ansigt er alt, hvad der skal til.'
-      : 'One clear photo of your face is all it takes.';
+      ? 'Vi starter med det billede af dig, som vi skal bruge til videoen!'
+      : "We'll start with the photo of you that we'll need to make the "
+          'video!';
+  String get photoIntroQuestion => _da
+      ? 'Er du klar til at tage en selfie?'
+      : 'Are you ready to take a selfie?';
   String get openSettings => _da ? 'Åbn Indstillinger' : 'Open Settings';
-  String get useAPhotoIHave =>
-      _da ? 'Brug et billede, jeg har' : 'Use a photo I have';
+  String get imReady => _da ? 'Jeg er klar' : "I'm ready";
   String get takeAPicture => _da ? 'Tag et billede' : 'Take a picture';
   String get tipLightTitle => _da ? 'Find godt lys' : 'Find good light';
   String get tipLightBody =>
@@ -188,13 +188,53 @@ class S {
           'kameraet. Tryk på “Tillad”.'
       : 'When you tap the button, your phone will ask if this app can use '
           'the camera. Please tap “Allow”.';
+  String get permissionTitle => _da ? 'Én ting mere' : 'One more thing';
+  // Matches the word iOS and Android put on the button, so the slide and
+  // the system alert say the same thing.
+  String get allowLabel => _da ? 'Tillad' : 'Allow';
   String get permissionDenied => _da
       ? 'Adgang til kameraet er slået fra. Åbn Indstillinger, og slå det til.'
       : 'Camera access is turned off. Open Settings, then switch it on.';
+  // ── After the selfie ──────────────────────────────────────────────────
+  String get youLookGreat => _da
+      ? 'Du ser godt ud! Nu sætter vi maskineriet i gang.'
+      : "You look great, we'll start the machinery now.";
+  String get adThenPick => _da
+      ? 'Du får vist en reklame, og bagefter kan du vælge din sjove video.'
+      : "You'll be shown an ad, and after that, you can pick your funny "
+          'video.';
+  String get letsGo => _da ? 'Kom så!' : "Let's go!";
+
+  // ── Photo quality ─────────────────────────────────────────────────────
+  // Warnings, never blocks. The check is a brightness and sharpness reading,
+  // not a face detector, so it can be wrong about a perfectly usable photo.
+  String get photoTooDark => _da
+      ? 'Billedet er ret mørkt. Stil dig gerne ved et vindue og prøv igen.'
+      : 'This photo is quite dark. Try facing a window and taking it again.';
+  String get photoTooBright => _da
+      ? 'Billedet er meget lyst. Prøv at flytte dig lidt væk fra lyset.'
+      : 'This photo is very bright. Try moving away from the light a little.';
+  String get photoTooBlurry => _da
+      ? 'Billedet er lidt sløret. Hold telefonen stille, og prøv igen.'
+      : 'This photo is a little blurry. Hold the phone still and try again.';
+  String get useItAnyway => _da ? 'Brug det alligevel' : 'Use it anyway';
+
+  // ── Ad break ──────────────────────────────────────────────────────────
+  String get advertisement => _da ? 'Reklame' : 'Advertisement';
+  String adSkipIn(int seconds) =>
+      _da ? 'Videoen starter om $seconds s' : 'Your video starts in $seconds s';
+  String get adPlaceholder => _da
+      ? 'Her kommer reklamen til at køre.'
+      : 'This is where the ad will play.';
+
+  // ── Quick scenario pick ───────────────────────────────────────────────
+  String get chooseYourScenario =>
+      _da ? 'Vælg dit scenarie' : 'Choose your scenario';
+  String get moreScenarios => _da ? 'Flere scenarier' : 'More scenarios';
+
   String get faceInCircle => _da
       ? 'Hold ansigtet inde i cirklen'
       : 'Put your face inside the circle';
-  String get photosLabel => _da ? 'Billeder' : 'Photos';
   String get happyWithPhoto =>
       _da ? 'Er du glad for billedet?' : 'Happy with this photo?';
   String get retake => _da ? 'Tag igen' : 'Retake';
@@ -202,8 +242,6 @@ class S {
   String get cameraUnavailable => _da
       ? 'Kameraet er ikke tilgængeligt.'
       : 'The camera is not available.';
-  String get chooseAPhotoInstead =>
-      _da ? 'Vælg et billede i stedet' : 'Choose a photo instead';
   String get couldNotTakePhoto => _da
       ? 'Billedet kunne ikke tages.'
       : 'Could not take the photo.';

@@ -3,9 +3,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:funny_you/app/app.dart';
 import 'package:funny_you/data/templates.dart';
 import 'package:funny_you/features/home/home_shell.dart';
+import 'package:funny_you/features/ads/ad_break_screen.dart';
+import 'package:funny_you/features/capture/photo_intro_screen.dart';
+import 'package:funny_you/features/onboarding/how_it_works_screen.dart';
 import 'package:funny_you/features/onboarding/welcome_screen.dart';
-import 'package:funny_you/features/paywall/paywall_screen.dart';
-import 'package:funny_you/features/templates/template_picker_screen.dart';
+import 'package:funny_you/features/templates/quick_pick_screen.dart';
 import 'package:funny_you/state/app_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -33,27 +35,95 @@ void main() {
     expect(find.text('Funny You!'), findsOneWidget);
   });
 
-  testWidgets('welcome pages advance through all four steps', (tester) async {
+  testWidgets('the welcome screen asks one question and nothing else',
+      (tester) async {
     _useIPhoneViewport(tester);
     await tester.pumpWidget(FunnyYouApp(state: await _state({})));
     await tester.pump();
 
+    expect(
+      find.text('Are you ready to make some unbelievable scenarios?'),
+      findsOneWidget,
+    );
+    expect(find.text('Yes!'), findsOneWidget);
+    // The product tour used to live here and does not any more.
+    expect(find.text('Next'), findsNothing);
+    expect(find.text('Skip'), findsNothing);
+  });
+
+  testWidgets('saying yes goes straight to the selfie', (tester) async {
+    _useIPhoneViewport(tester);
+    await tester.pumpWidget(FunnyYouApp(state: await _state({})));
+    await tester.pump();
+
+    await tester.tap(find.text('Yes!'));
+    // Not pumpAndSettle: the ambient backdrop animates forever by design, so
+    // settling would never complete.
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(find.byType(PhotoIntroScreen), findsOneWidget);
+    expect(
+      find.textContaining("We'll start with the photo"),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('the photo intro puts the permission notice on its own slide',
+      (tester) async {
+    _useIPhoneViewport(tester);
+    await tester.pumpWidget(FunnyYouApp(state: await _state({})));
+    await tester.pump();
+
+    await tester.tap(find.text('Yes!'));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    // Slide one sells the photo and never mentions permissions.
+    expect(find.text('Are you ready to take a selfie?'), findsOneWidget);
+    expect(find.textContaining('tap'), findsNothing);
+
+    await tester.tap(find.text("I'm ready"));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(find.text('One more thing'), findsOneWidget);
+    expect(find.textContaining('can use the camera'), findsOneWidget);
+    expect(find.text('Allow'), findsOneWidget);
+  });
+
+  testWidgets('the four step tour still exists, behind How it works',
+      (tester) async {
+    _useIPhoneViewport(tester);
+    await tester.pumpWidget(
+      FunnyYouApp(state: await _state({'onboarding_complete': true})),
+    );
+    await tester.pump();
+
+    await tester.tap(find.text('Me'));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    await tester.tap(find.text('See how it works again'));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(find.byType(HowItWorksScreen), findsOneWidget);
     for (final title in [
       'Take one photo',
       'Pick your favourite',
       'We make your video',
       'Watch, save and share',
     ]) {
-      await tester.tap(find.text('Next'));
-      // Not pumpAndSettle: the ambient backdrop and step animations loop
-      // forever by design, so settling would never complete.
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 600));
       // findsAtLeast, not findsOne: some step copy is echoed inside the
       // phone mockup it describes.
       expect(find.text(title), findsAtLeastNWidgets(1));
+      if (title != 'Watch, save and share') {
+        await tester.tap(find.text('Next'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 600));
+      }
     }
-
     expect(find.text('Get Started'), findsOneWidget);
   });
 
@@ -68,33 +138,33 @@ void main() {
     expect(find.text('Create'), findsOneWidget);
   });
 
-  testWidgets('finishing onboarding hands off to home, then the paywall',
+  testWidgets('with a photo on file, yes leads to the ad then the picker',
       (tester) async {
     _useIPhoneViewport(tester);
     await tester.pumpWidget(
       FunnyYouApp(
-        // A face photo already on file, so the flow goes straight to the
-        // scenario picker.
+        // A face photo already on file, so the flow skips the camera.
         state: await _state({'face_photo_path': 'C:/tmp/face.jpg'}),
       ),
     );
     await tester.pump();
 
-    await tester.tap(find.text('Skip'));
+    await tester.tap(find.text('Yes!'));
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
 
-    expect(find.byType(TemplatePickerScreen), findsOneWidget);
-
-    await tester.tap(find.textContaining('Turn me into'));
-    await tester.pump();
-    await tester.pump(const Duration(seconds: 1));
-
-    // The root has been swapped for the home screen underneath, and the
-    // paywall is stacked on top — a regression here means the hand-off lost
-    // its navigator.
-    expect(find.byType(PaywallScreen), findsOneWidget);
+    // The root has been swapped for the home screen underneath and the ad is
+    // stacked on top. A regression here means the hand-off lost its navigator.
+    expect(find.byType(AdBreakScreen), findsOneWidget);
     expect(find.byType(HomeShell, skipOffstage: false), findsOneWidget);
+
+    // Sit through the placeholder ad.
+    await tester.pump(const Duration(seconds: 6));
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(find.byType(QuickPickScreen), findsOneWidget);
+    expect(find.text('Choose your scenario'), findsOneWidget);
+    expect(find.text('More scenarios'), findsOneWidget);
   });
 
   test('the catalogue holds 40 templates across every category', () {

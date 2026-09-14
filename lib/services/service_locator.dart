@@ -1,3 +1,4 @@
+import 'ad_service.dart';
 import 'api_config.dart';
 import 'backend_status.dart';
 import 'generation_service.dart';
@@ -35,5 +36,9 @@ class ServiceLocator {
 
   // Payments stay mocked until StoreKit products exist in App Store Connect.
   PurchaseService purchases = MockPurchaseService();
+
+  // Ads likewise: a house placeholder until an AdMob account and a rewarded
+  // ad unit id exist. See `ad_service.dart`.
+  AdService ads = const MockAdService();
   PermissionService permissions = PermissionService();
 }

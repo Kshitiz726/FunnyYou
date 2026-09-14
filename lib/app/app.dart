@@ -6,11 +6,8 @@ import 'package:provider/provider.dart';
 
 import '../core/i18n/strings.dart';
 import '../core/theme/app_theme.dart';
-import '../data/templates.dart';
-import '../features/capture/photo_intro_screen.dart';
 import '../features/home/home_shell.dart';
 import '../features/onboarding/welcome_screen.dart';
-import '../features/templates/template_picker_screen.dart';
 import '../state/app_state.dart';
 import 'creation_flow.dart';
 
@@ -70,44 +67,30 @@ class RootScreen extends StatefulWidget {
 class _RootScreenState extends State<RootScreen> {
   late final bool _firstRun = !context.read<AppState>().hasOnboarded;
 
-  /// The guided first-time journey: photo → scenario → paywall → render.
+  /// The guided first-time journey.
+  ///
+  /// The ordering itself lives in [CreationFlow] and nowhere else. This used
+  /// to re-implement it, which is how the two drifted apart: the flow gained a
+  /// step and the first run kept the old one.
   Future<void> _runFirstJourney() async {
     final state = context.read<AppState>();
     final navigator = Navigator.of(context);
 
-    // 1. Face photo — this is where the camera permission alert appears.
-    if (!state.hasFacePhoto) {
-      final path = await navigator.push<String>(
-        MaterialPageRoute(builder: (_) => const PhotoIntroScreen()),
-      );
-      if (path == null) return;
-      await state.setFacePhoto(path);
-    }
-
-    // 2. Pick a scenario.
-    final template = await navigator.push<VideoTemplate>(
-      MaterialPageRoute(builder: (_) => const TemplatePickerScreen()),
-    );
-
-    // The user has now seen the whole story, so never show it again.
+    // They have said yes. Never show the welcome again, even if they back out
+    // of what follows.
     await state.completeOnboarding();
 
-    // Swap the onboarding root for the home screen. This unmounts *this*
-    // widget, so everything below must run off the captured navigator and
-    // state rather than `context`.
+    // Swap the onboarding root for the home screen *first*, so abandoning any
+    // step below lands somewhere sensible instead of on a dead route. This
+    // unmounts this widget, so everything after runs off the captured
+    // navigator and state rather than `context`.
     unawaited(navigator.pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const HomeShell()),
       (route) => false,
     ));
 
-    // 3. Paywall + render, stacked on top of the home screen so "Make
-    //    another" lands somewhere sensible.
-    if (template == null) return;
-    await CreationFlow.startWith(
-      navigator: navigator,
-      state: state,
-      template: template,
-    );
+    // Selfie, ad, scenario, render.
+    await CreationFlow.startWith(navigator: navigator, state: state);
   }
 
   @override

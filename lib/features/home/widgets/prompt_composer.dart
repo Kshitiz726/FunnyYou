@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:provider/provider.dart';
 
 import '../../../app/creation_flow.dart';
 import '../../../core/i18n/strings.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_buttons.dart';
 import '../../../data/models.dart';
-import '../../../state/app_state.dart';
 import 'voice_sheet.dart';
 
-/// "Type your idea" card from the home screen: free-text prompt plus the three
-/// ways to give us a face — camera, photo library, or voice.
+/// "Type your idea" card from the home screen: free-text prompt, the camera,
+/// and voice input.
+///
+/// The photo library used to sit here too, writing whatever was picked
+/// straight into the face photo. That is the one upload path the product
+/// cannot have: the face that comes out of the render is whatever face went
+/// in, and there is no way to know that a photo from someone's camera roll
+/// is a photo of them. Faces now only ever come from the camera.
 class PromptComposer extends StatefulWidget {
   const PromptComposer({super.key, this.compact = false});
 
@@ -29,23 +32,6 @@ class _PromptComposerState extends State<PromptComposer> {
   void dispose() {
     _controller.dispose();
     super.dispose();
-  }
-
-  Future<void> _pickFromLibrary() async {
-    final file = await ImagePicker().pickImage(
-      source: ImageSource.gallery,
-      maxWidth: 1600,
-      imageQuality: 92,
-    );
-    if (file == null || !mounted) return;
-    await context.read<AppState>().setFacePhoto(file.path);
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(context.s.photoUpdated),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
   }
 
   Future<void> _dictate() async {
@@ -115,12 +101,6 @@ class _PromptComposerState extends State<PromptComposer> {
                         icon: Icons.photo_camera_rounded,
                         label: 'Camera',
                         onPressed: () => CreationFlow.retakePhoto(context),
-                      ),
-                      const SizedBox(width: 8),
-                      _ComposerAction(
-                        icon: Icons.add_photo_alternate_rounded,
-                        label: 'Add image',
-                        onPressed: _pickFromLibrary,
                       ),
                       const SizedBox(width: 8),
                       _ComposerAction(

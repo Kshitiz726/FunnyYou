@@ -81,22 +81,37 @@ Exactly the journey in the flow diagram:
 
 | # | Screen | File |
 |---|--------|------|
-| 1 | Welcome + 4 animated steps, Next / Skip | `features/onboarding/welcome_screen.dart` |
-| 2 | Why we need a photo + permission priming | `features/capture/photo_intro_screen.dart` |
-| 3 | Native iOS camera alert | triggered from the screen above |
-| 4 | Camera with face guide → review, Retake / Continue | `features/capture/capture_screen.dart` |
-| 5 | Pick your favourite — hero preview + all 40 scenarios | `features/templates/template_picker_screen.dart` |
-| 6 | Paywall — three one-time packs, StoreKit-ready | `features/paywall/paywall_screen.dart` |
-| 7 | Generating — progress ring, stage checklist, ETA | `features/generating/generating_screen.dart` |
-| 8 | Your video is ready — play, share, save, make another | `features/result/result_screen.dart` |
-| 9 | Home (after the first video) | `features/home/home_screen.dart` |
+| 1 | Welcome: one question, one big Yes | `features/onboarding/welcome_screen.dart` |
+| 2 | Why we need a photo + how to take a good one | `features/capture/photo_intro_screen.dart` |
+| 3 | The camera permission alert, on its own slide | same file, slide two |
+| 4 | Native camera alert | triggered by the button on slide two |
+| 5 | Camera with face guide, then review + quality check | `features/capture/capture_screen.dart` |
+| 6 | "You look great", and a warning that an ad is next | `features/capture/photo_ready_screen.dart` |
+| 7 | The ad that pays for the render | `features/ads/ad_break_screen.dart` |
+| 8 | Choose your scenario: six tiles + More scenarios | `features/templates/quick_pick_screen.dart` |
+| 9 | All 40 scenarios, by category | `features/templates/template_picker_screen.dart` |
+| 10 | Generating: progress ring, stage checklist, ETA | `features/generating/generating_screen.dart` |
+| 11 | Your video is ready: play, share, save, make another | `features/result/result_screen.dart` |
+| 12 | Home (after the first video) | `features/home/home_screen.dart` |
 
-The welcome screen shows **once**, on first launch. Ordering of the gates
-(photo → payment → render) lives in one place: `app/creation_flow.dart`.
+The welcome screen shows **once**, on first launch. The four step product tour
+that used to follow it now lives behind *Me > See how it works again*
+(`features/onboarding/how_it_works_screen.dart`).
+
+Ordering of the gates (selfie, ad, scenario, render) lives in exactly one
+place: `app/creation_flow.dart`. The first run goes through the same function,
+so the two cannot drift apart.
+
+**Faces only ever come from the camera.** There is no photo-library route
+anywhere in the app, and `image_picker` is not a dependency. Whatever face goes
+in comes out in the render, and nothing about a picture from someone's camera
+roll says it is a picture of them.
+
+**The paywall is still there** (`features/paywall/paywall_screen.dart`),
+reached from *Me*, for buying credits in packs. Credits skip the ad.
 
 "Make another" pops back to the home screen, which is the `ui_inspo` layout:
-greeting, *What's your next creation?*, prompt composer with **Camera / Add
-image / Voice**, *Choose your style* rail, and a *Discovery* grid filtered by
+greeting, *What's your next creation?*, prompt composer with **Camera / Voice**, *Choose your style* rail, and a *Discovery* grid filtered by
 category.
 
 ---

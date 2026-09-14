@@ -91,3 +91,6 @@ backend/templates/*.webm
 backend/templates/*.mov
 backend/templates/*.png
 backend/templates/*.jpg
+
+# Editor-local, and it stores an absolute path from one machine.
+/.vscode/

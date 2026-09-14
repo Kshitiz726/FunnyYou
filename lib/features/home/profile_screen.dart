@@ -11,7 +11,7 @@ import '../../core/widgets/glass.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/backdrop.dart';
 import '../../state/app_state.dart';
-import '../onboarding/welcome_screen.dart';
+import '../onboarding/how_it_works_screen.dart';
 import '../paywall/paywall_screen.dart';
 
 /// Account, photo and support. Deliberately short.
@@ -70,7 +70,7 @@ class ProfileScreen extends StatelessWidget {
                     label: s.seeHowItWorks,
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (_) => WelcomeScreen(
+                        builder: (_) => HowItWorksScreen(
                           onFinished: () => Navigator.of(context).pop(),
                         ),
                       ),

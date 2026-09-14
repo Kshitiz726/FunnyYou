@@ -3,11 +3,11 @@ import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:image_picker/image_picker.dart';
 
 import '../../core/i18n/strings.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/app_buttons.dart';
+import 'photo_quality.dart';
 import 'widgets/face_guide.dart';
 
 /// Full-screen camera with a face guide, then a review step.
@@ -29,6 +29,8 @@ class _CaptureScreenState extends State<CaptureScreen>
   bool _capturing = false;
   String? _error;
   String? _reviewPath;
+  PhotoIssue? _issue;
+  bool _inspecting = false;
 
   bool get _cameraAvailable => _controller?.value.isInitialized ?? false;
 
@@ -123,23 +125,25 @@ class _CaptureScreenState extends State<CaptureScreen>
     try {
       final file = await controller.takePicture();
       if (!mounted) return;
-      setState(() => _reviewPath = file.path);
+      setState(() {
+        _reviewPath = file.path;
+        _issue = null;
+        _inspecting = true;
+      });
+      // Reads the pixels for exposure and focus. Advisory only, and it runs
+      // after the photo is already on screen so the review never waits on it.
+      final issue = await PhotoQuality.inspect(file.path);
+      if (!mounted) return;
+      setState(() {
+        _issue = issue;
+        _inspecting = false;
+      });
     } on CameraException catch (e) {
       if (!mounted) return;
       setState(() => _error = e.description ?? context.s.couldNotTakePhoto);
     } finally {
       if (mounted) setState(() => _capturing = false);
     }
-  }
-
-  Future<void> _pickFromLibrary() async {
-    final file = await ImagePicker().pickImage(
-      source: ImageSource.gallery,
-      maxWidth: 1600,
-      imageQuality: 92,
-    );
-    if (file == null || !mounted) return;
-    setState(() => _reviewPath = file.path);
   }
 
   @override
@@ -151,7 +155,12 @@ class _CaptureScreenState extends State<CaptureScreen>
         body: _reviewPath != null
             ? _ReviewView(
                 path: _reviewPath!,
-                onRetake: () => setState(() => _reviewPath = null),
+                issue: _issue,
+                checking: _inspecting,
+                onRetake: () => setState(() {
+                  _reviewPath = null;
+                  _issue = null;
+                }),
                 onConfirm: () => Navigator.of(context).pop(_reviewPath),
               )
             : _CameraView(
@@ -163,7 +172,6 @@ class _CaptureScreenState extends State<CaptureScreen>
                 available: _cameraAvailable,
                 onCapture: _capture,
                 onFlip: _flipCamera,
-                onPickLibrary: _pickFromLibrary,
                 onClose: () => Navigator.of(context).pop(),
               ),
       ),
@@ -181,7 +189,6 @@ class _CameraView extends StatelessWidget {
     required this.available,
     required this.onCapture,
     required this.onFlip,
-    required this.onPickLibrary,
     required this.onClose,
   });
 
@@ -193,7 +200,6 @@ class _CameraView extends StatelessWidget {
   final bool available;
   final VoidCallback onCapture;
   final VoidCallback onFlip;
-  final VoidCallback onPickLibrary;
   final VoidCallback onClose;
 
   @override
@@ -216,7 +222,7 @@ class _CameraView extends StatelessWidget {
           ),
 
         if (!initialising && !available)
-          _CameraUnavailable(message: error, onPickLibrary: onPickLibrary),
+          _CameraUnavailable(message: error),
 
         SafeArea(
           child: Column(
@@ -266,11 +272,7 @@ class _CameraView extends StatelessWidget {
                 ),
               const Spacer(),
               if (available)
-                _ShutterBar(
-                  capturing: capturing,
-                  onCapture: onCapture,
-                  onPickLibrary: onPickLibrary,
-                ),
+                _ShutterBar(capturing: capturing, onCapture: onCapture),
             ],
           ),
         ),
@@ -309,12 +311,10 @@ class _ShutterBar extends StatelessWidget {
   const _ShutterBar({
     required this.capturing,
     required this.onCapture,
-    required this.onPickLibrary,
   });
 
   final bool capturing;
   final VoidCallback onCapture;
-  final VoidCallback onPickLibrary;
 
   @override
   Widget build(BuildContext context) {
@@ -331,38 +331,8 @@ class _ShutterBar extends StatelessWidget {
         ),
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          SizedBox(
-            width: 68,
-            child: PressableScale(
-              onPressed: onPickLibrary,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    height: 46,
-                    width: 46,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.16),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: const Icon(Icons.photo_library_rounded,
-                        size: 22, color: Colors.white),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    context.s.photosLabel,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white70,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
           PressableScale(
             scale: 0.9,
             onPressed: capturing ? null : onCapture,
@@ -396,7 +366,6 @@ class _ShutterBar extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 68),
         ],
       ),
     );
@@ -406,11 +375,9 @@ class _ShutterBar extends StatelessWidget {
 class _CameraUnavailable extends StatelessWidget {
   const _CameraUnavailable({
     required this.message,
-    required this.onPickLibrary,
   });
 
   final String? message;
-  final VoidCallback onPickLibrary;
 
   @override
   Widget build(BuildContext context) {
@@ -433,13 +400,6 @@ class _CameraUnavailable extends StatelessWidget {
                 color: Colors.white,
               ),
             ),
-            const SizedBox(height: 24),
-            SecondaryButton(
-              label: context.s.chooseAPhotoInstead,
-              icon: Icons.photo_library_rounded,
-              expand: false,
-              onPressed: onPickLibrary,
-            ),
           ],
         ),
       ),
@@ -450,13 +410,29 @@ class _CameraUnavailable extends StatelessWidget {
 class _ReviewView extends StatelessWidget {
   const _ReviewView({
     required this.path,
+    required this.issue,
+    required this.checking,
     required this.onRetake,
     required this.onConfirm,
   });
 
   final String path;
+
+  /// What the exposure and focus check found, or null if it was happy.
+  final PhotoIssue? issue;
+
+  /// The check has not come back yet.
+  final bool checking;
+
   final VoidCallback onRetake;
   final VoidCallback onConfirm;
+
+  String _issueText(S s) => switch (issue) {
+        PhotoIssue.tooDark => s.photoTooDark,
+        PhotoIssue.tooBright => s.photoTooBright,
+        PhotoIssue.blurry => s.photoTooBlurry,
+        null => '',
+      };
 
   @override
   Widget build(BuildContext context) {
@@ -482,10 +458,20 @@ class _ReviewView extends StatelessWidget {
           child: Column(
             children: [
               const Spacer(),
+              // A warning, never a block. The check reads brightness and
+              // sharpness, not faces, so it can be wrong about a photo that is
+              // perfectly usable. The user gets the last word.
+              if (issue != null)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+                  child: _QualityWarning(text: _issueText(context.s)),
+                ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 32),
                 child: Text(
-                  context.s.happyWithPhoto,
+                  issue == null
+                      ? context.s.happyWithPhoto
+                      : context.s.useItAnyway,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 24,
@@ -528,6 +514,7 @@ class _ReviewView extends StatelessWidget {
                       child: PrimaryButton(
                         label: context.s.continueLabel,
                         icon: Icons.check_rounded,
+                        loading: checking,
                         onPressed: onConfirm,
                       ),
                     ),
@@ -538,6 +525,43 @@ class _ReviewView extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// The exposure or focus suggestion, shown over the photo it is about.
+class _QualityWarning extends StatelessWidget {
+  const _QualityWarning({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.55),
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.lightbulb_rounded, size: 20, color: Colors.white),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(
+                fontSize: 15,
+                height: 1.35,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

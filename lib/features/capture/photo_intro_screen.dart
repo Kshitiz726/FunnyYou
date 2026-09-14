@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:image_picker/image_picker.dart';
 
 import '../../core/i18n/strings.dart';
 import '../../core/theme/app_theme.dart';
@@ -9,11 +8,21 @@ import '../../core/widgets/backdrop.dart';
 import '../../services/permission_service.dart';
 import '../../services/service_locator.dart';
 import 'capture_screen.dart';
+import 'photo_ready_screen.dart';
 
-/// Explains *why* we need the camera before the native iOS alert appears.
+/// Explains *why* we need the camera before the native alert appears, over two
+/// slides.
 ///
-/// Priming like this is what keeps the permanent-denial rate low: the system
-/// alert can only ever be shown once.
+/// It used to be one screen: the pitch, three tips, and the camera permission
+/// notice stacked at the bottom. The notice is the part that decides whether
+/// the user taps Allow, and it was the part they had already scrolled past. It
+/// gets a slide of its own now, immediately before the alert it describes.
+///
+/// There is no "use a photo I have" route any more. The app only ever works
+/// from a selfie taken here and now, which keeps someone else's face out of
+/// the pipeline.
+///
+/// Pops with the captured file path, or null if the user backs out.
 class PhotoIntroScreen extends StatefulWidget {
   const PhotoIntroScreen({super.key, this.onPhotoTaken});
 
@@ -26,10 +35,28 @@ class PhotoIntroScreen extends StatefulWidget {
 }
 
 class _PhotoIntroScreenState extends State<PhotoIntroScreen> {
+  final _controller = PageController();
+  int _page = 0;
   bool _requesting = false;
   bool _blocked = false;
 
-  Future<void> _continue() async {
+  bool get _onPermissionSlide => _page == 1;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _next() {
+    HapticFeedback.selectionClick();
+    _controller.nextPage(
+      duration: AppDuration.base,
+      curve: Curves.easeOutCubic,
+    );
+  }
+
+  Future<void> _takePhoto() async {
     setState(() => _requesting = true);
 
     final permissions = ServiceLocator.instance.permissions;
@@ -46,40 +73,40 @@ class _PhotoIntroScreenState extends State<PhotoIntroScreen> {
       return;
     }
 
-    final path = await Navigator.of(context).push<String>(
-      MaterialPageRoute(builder: (_) => const CaptureScreen()),
-    );
-
-    if (path == null || !mounted) return;
-    if (widget.onPhotoTaken != null) {
-      widget.onPhotoTaken!(path);
-    } else {
-      Navigator.of(context).pop(path);
-    }
+    await _capture();
   }
 
-  /// Use a photo they already have instead of taking a new one.
+  /// Camera, then the confirmation beat, looping until the user is happy.
   ///
-  /// Not only a fallback for a refused camera: this audience often has one
-  /// photo of themselves they actually like, and being made to take a fresh
-  /// selfie is exactly the step that loses them.
-  Future<void> _chooseExisting() async {
-    final file = await ImagePicker().pickImage(
-      source: ImageSource.gallery,
-      maxWidth: 1600,
-      imageQuality: 92,
-    );
-    if (file == null || !mounted) return;
+  /// Retaking from the confirmation screen has to come straight back to the
+  /// camera rather than dropping the user out to this intro, which they have
+  /// already read.
+  Future<void> _capture() async {
+    while (mounted) {
+      final path = await Navigator.of(context).push<String>(
+        MaterialPageRoute(builder: (_) => const CaptureScreen()),
+      );
+      if (path == null || !mounted) return;
 
-    if (widget.onPhotoTaken != null) {
-      widget.onPhotoTaken!(file.path);
-    } else {
-      Navigator.of(context).pop(file.path);
+      final keep = await Navigator.of(context).push<bool>(
+        MaterialPageRoute(builder: (_) => PhotoReadyScreen(photoPath: path)),
+      );
+      if (!mounted) return;
+      if (keep != true) continue;
+
+      if (widget.onPhotoTaken != null) {
+        widget.onPhotoTaken!(path);
+      } else {
+        Navigator.of(context).pop(path);
+      }
+      return;
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final s = context.s;
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: AppTheme.systemOverlayLight,
       child: Scaffold(
@@ -98,51 +125,18 @@ class _PhotoIntroScreenState extends State<PhotoIntroScreen> {
                           onPressed: () => Navigator.of(context).pop(),
                         ),
                       const Spacer(),
+                      _PageDots(page: _page, count: 2),
                     ],
                   ),
                 ),
                 Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.lg,
-                      vertical: AppSpacing.md,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const FadeSlideIn(child: _CameraGlyph()),
-                        const SizedBox(height: AppSpacing.xl),
-                        FadeSlideIn(
-                          delay: const Duration(milliseconds: 80),
-                          child: Text(
-context.s.photoIntroBody,
-                            textAlign: TextAlign.center,
-                            style: AppTypography.display.copyWith(fontSize: 28),
-                          ),
-                        ),
-                        const SizedBox(height: AppSpacing.md),
-                        FadeSlideIn(
-                          delay: const Duration(milliseconds: 130),
-                          child: Text(
-context.s.photoIntroBody2,
-                            textAlign: TextAlign.center,
-                            style: AppTypography.body.copyWith(fontSize: 18),
-                          ),
-                        ),
-                        const SizedBox(height: AppSpacing.xl),
-                        const FadeSlideIn(
-                          delay: Duration(milliseconds: 180),
-                          child: _TipList(),
-                        ),
-                        const SizedBox(height: AppSpacing.lg),
-                        FadeSlideIn(
-                          delay: const Duration(milliseconds: 230),
-                          child: _blocked
-                              ? const _BlockedNotice()
-                              : const _PermissionNotice(),
-                        ),
-                      ],
-                    ),
+                  child: PageView(
+                    controller: _controller,
+                    onPageChanged: (value) => setState(() => _page = value),
+                    children: [
+                      const _PitchSlide(),
+                      _PermissionSlide(blocked: _blocked),
+                    ],
                   ),
                 ),
                 Padding(
@@ -152,30 +146,25 @@ context.s.photoIntroBody2,
                     AppSpacing.lg,
                     AppSpacing.md,
                   ),
-                  child: Column(
-                    children: [
-                      if (_blocked)
-                        PrimaryButton(
-                          label: context.s.openSettings,
+                  child: _blocked
+                      ? PrimaryButton(
+                          label: s.openSettings,
                           icon: Icons.settings_rounded,
                           onPressed: () =>
                               ServiceLocator.instance.permissions.openSettings(),
                         )
-                      else
-                        PrimaryButton(
-                          label: context.s.takeAPicture,
-                          icon: Icons.photo_camera_rounded,
-                          loading: _requesting,
-                          onPressed: _continue,
-                        ),
-                      const SizedBox(height: 10),
-                      SecondaryButton(
-                        label: context.s.useAPhotoIHave,
-                        icon: Icons.photo_library_rounded,
-                        onPressed: _chooseExisting,
-                      ),
-                    ],
-                  ),
+                      : _onPermissionSlide
+                          ? PrimaryButton(
+                              label: s.takeAPicture,
+                              icon: Icons.photo_camera_rounded,
+                              loading: _requesting,
+                              onPressed: _takePhoto,
+                            )
+                          : PrimaryButton(
+                              label: s.imReady,
+                              icon: Icons.arrow_forward_rounded,
+                              onPressed: _next,
+                            ),
                 ),
               ],
             ),
@@ -186,30 +175,203 @@ context.s.photoIntroBody2,
   }
 }
 
+/// Slide one: what we need and why, plus how to take a good one.
+class _PitchSlide extends StatelessWidget {
+  const _PitchSlide();
+
+  @override
+  Widget build(BuildContext context) {
+    final s = context.s;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.md,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const FadeSlideIn(child: _CameraGlyph()),
+          const SizedBox(height: AppSpacing.xl),
+          FadeSlideIn(
+            delay: const Duration(milliseconds: 80),
+            child: Text(
+              s.photoIntroBody,
+              textAlign: TextAlign.center,
+              style: AppTypography.display.copyWith(fontSize: 26),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          FadeSlideIn(
+            delay: const Duration(milliseconds: 130),
+            child: Text(
+              s.photoIntroQuestion,
+              textAlign: TextAlign.center,
+              style: AppTypography.body.copyWith(fontSize: 18),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xl),
+          const FadeSlideIn(
+            delay: Duration(milliseconds: 180),
+            child: _TipList(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Slide two: nothing but the permission alert that is about to appear.
+class _PermissionSlide extends StatelessWidget {
+  const _PermissionSlide({required this.blocked});
+
+  /// Camera access was refused for good. The slide stops explaining what is
+  /// about to be asked and starts explaining how to undo it.
+  final bool blocked;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = context.s;
+
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.lg,
+          vertical: AppSpacing.md,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const FadeSlideIn(child: _ShieldGlyph()),
+            const SizedBox(height: AppSpacing.xl),
+            FadeSlideIn(
+              delay: const Duration(milliseconds: 80),
+              child: Text(
+                blocked ? s.cameraUnavailable : s.permissionTitle,
+                textAlign: TextAlign.center,
+                style: AppTypography.display.copyWith(fontSize: 26),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            FadeSlideIn(
+              delay: const Duration(milliseconds: 140),
+              child: Text(
+                blocked ? s.permissionDenied : s.permissionExplainer,
+                textAlign: TextAlign.center,
+                style: AppTypography.body.copyWith(fontSize: 19, height: 1.5),
+              ),
+            ),
+            if (!blocked) ...[
+              const SizedBox(height: AppSpacing.xl),
+              FadeSlideIn(
+                delay: const Duration(milliseconds: 200),
+                child: _AllowChip(label: s.allowLabel),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// A stand-in for the button the user is about to be asked to tap, so the word
+/// on this slide is the word they then see in the system alert.
+class _AllowChip extends StatelessWidget {
+  const _AllowChip({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 13),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppRadius.pill),
+        border: Border.all(color: AppColors.primary, width: 2),
+        boxShadow: AppShadows.card,
+      ),
+      child: Text(
+        label,
+        style: AppTypography.bodyStrong.copyWith(
+          color: AppColors.primaryBright,
+          fontSize: 18,
+        ),
+      ),
+    );
+  }
+}
+
+class _PageDots extends StatelessWidget {
+  const _PageDots({required this.page, required this.count});
+
+  final int page;
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (var i = 0; i < count; i++)
+          AnimatedContainer(
+            duration: AppDuration.fast,
+            margin: const EdgeInsets.symmetric(horizontal: 3),
+            height: 7,
+            width: i == page ? 20 : 7,
+            decoration: BoxDecoration(
+              color: i == page ? AppColors.primary : AppColors.hairline,
+              borderRadius: BorderRadius.circular(AppRadius.pill),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
 class _CameraGlyph extends StatelessWidget {
   const _CameraGlyph();
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Container(
-        height: 132,
-        width: 132,
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFFE11D28), AppColors.primaryDark],
-          ),
-          borderRadius: BorderRadius.circular(38),
-          boxShadow: AppShadows.button,
+    return const Center(
+      child: _Glyph(icon: Icons.photo_camera_rounded),
+    );
+  }
+}
+
+class _ShieldGlyph extends StatelessWidget {
+  const _ShieldGlyph();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: _Glyph(icon: Icons.lock_person_rounded),
+    );
+  }
+}
+
+class _Glyph extends StatelessWidget {
+  const _Glyph({required this.icon});
+
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 132,
+      width: 132,
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFFE11D28), AppColors.primaryDark],
         ),
-        child: const Icon(
-          Icons.photo_camera_rounded,
-          size: 62,
-          color: Colors.white,
-        ),
+        borderRadius: BorderRadius.circular(38),
+        boxShadow: AppShadows.button,
       ),
+      child: Icon(icon, size: 62, color: Colors.white),
     );
   }
 }
@@ -271,64 +433,6 @@ class _TipList extends StatelessWidget {
               ],
             ),
           ],
-        ],
-      ),
-    );
-  }
-}
-
-class _PermissionNotice extends StatelessWidget {
-  const _PermissionNotice();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.primarySoft,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(color: AppColors.primaryTint, width: 1.5),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Icon(Icons.info_rounded, size: 20, color: AppColors.primary),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-context.s.permissionExplainer,
-              style: AppTypography.label.copyWith(color: AppColors.inkSoft),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _BlockedNotice extends StatelessWidget {
-  const _BlockedNotice();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: const Color(0xFF3A1013),
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(color: const Color(0xFF5A1A20), width: 1.5),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Icon(Icons.lock_rounded, size: 20, color: AppColors.danger),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              context.s.permissionDenied,
-              style: AppTypography.label.copyWith(color: AppColors.inkSoft),
-            ),
-          ),
         ],
       ),
     );
