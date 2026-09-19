@@ -32,7 +32,10 @@ void main() {
     await tester.pump();
 
     expect(find.byType(WelcomeScreen), findsOneWidget);
-    expect(find.text('Funny You!'), findsOneWidget);
+    // Once in the top bar, once as the headline. The client's copy is
+    // "Welcome to FunnyYou" with no exclamation mark, so neither carries one.
+    expect(find.text('Funny You'), findsNWidgets(2));
+    expect(find.text('Welcome to'), findsOneWidget);
   });
 
   testWidgets('the welcome screen asks one question and nothing else',
@@ -208,6 +211,24 @@ void main() {
       lessThanOrEqualTo(TemplateCatalog.previewSet.length),
       reason: 'a tile without a preview shows someone else',
     );
+  });
+
+  test('the four scenarios on offer are fixed, not preview-order', () {
+    // Previews arrive one at a time after the selfie. If the shortlist were
+    // ranked by "has a preview yet", each arrival would promote a different
+    // scenario into the visible four and the grid would reshuffle under the
+    // user's thumb. Pinning it to the head of previewSet keeps the tiles
+    // still while their images fill in.
+    expect(
+      QuickPickScreen.shortlistLength,
+      lessThanOrEqualTo(TemplateCatalog.previewSet.length),
+    );
+    final ids = TemplateCatalog.previewSet
+        .take(QuickPickScreen.shortlistLength)
+        .map((t) => t.id)
+        .toList();
+    expect(ids.toSet(), hasLength(QuickPickScreen.shortlistLength),
+        reason: 'the same scenario must not take two of the four slots');
   });
 
   test('credits gate generation', () async {

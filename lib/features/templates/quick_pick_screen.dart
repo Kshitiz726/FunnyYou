@@ -14,7 +14,7 @@ import '../../state/app_state.dart';
 import 'template_picker_screen.dart';
 import 'widgets/template_tile.dart';
 
-/// The first thing shown after the ad: six scenarios, and a way to see the
+/// The first thing shown after the ad: four scenarios, and a way to see the
 /// rest.
 ///
 /// The full catalogue is forty tiles in six categories with a hero preview and
@@ -51,30 +51,22 @@ class _QuickPickScreenState extends State<QuickPickScreen> {
     unawaited(ServiceLocator.instance.backend.refreshIfUnknown());
   }
 
-  /// The scenarios we have a preview of the user's own face for, first.
+  /// The four scenarios on offer.
   ///
-  /// Those are the tiles that sell the product: seeing your face as an
-  /// astronaut is the whole pitch, and a gradient placeholder is not. There
-  /// are five previews and four slots, so in practice every tile here is the
-  /// user. The fallback only matters if a preview failed to generate.
-  List<VideoTemplate> _shortlist() {
-    final previews = ServiceLocator.instance.previewStore;
-    final withPreview = <VideoTemplate>[];
-    final rest = <VideoTemplate>[];
-
-    for (final template in TemplateCatalog.all) {
-      if (previews.pathFor(template.id) != null) {
-        withPreview.add(template);
-      } else {
-        rest.add(template);
-      }
-    }
-
-    return [
-      ...withPreview,
-      ...rest,
-    ].take(QuickPickScreen.shortlistLength).toList();
-  }
+  /// Always the same four, and always ones a preview is being generated for.
+  ///
+  /// This used to sort the whole catalogue by "has a preview yet", which meant
+  /// the grid reshuffled under the user's thumb: previews stream in one at a
+  /// time after the selfie, and each arrival promoted a different scenario
+  /// into the visible four. Someone reaching for a tile could have it move.
+  ///
+  /// Taking the head of [TemplateCatalog.previewSet] instead fixes the four
+  /// before the first preview lands, so the images fill in where they already
+  /// are and nothing moves. Every one of them is a scenario the user's own
+  /// face is being rendered into, which is the brief: four images of *them*.
+  List<VideoTemplate> _shortlist() => TemplateCatalog.previewSet
+      .take(QuickPickScreen.shortlistLength)
+      .toList(growable: false);
 
   void _choose(VideoTemplate template) {
     HapticFeedback.selectionClick();
@@ -107,9 +99,9 @@ class _QuickPickScreenState extends State<QuickPickScreen> {
                 // The back button shares the title's row rather than taking
                 // one of its own. iOS has no hardware back and this route has
                 // no nav bar, so the button has to exist -- but a whole extra
-                // row of chrome pushed the third tile row's labels under the
-                // More scenarios button, and six tiles fitting without
-                // scrolling is the entire point of this screen.
+                // row of chrome pushed the tile labels under the More
+                // scenarios button, and the whole screen fitting without
+                // scrolling is the entire point of it.
                 Padding(
                   padding: const EdgeInsets.fromLTRB(12, 8, 12, AppSpacing.sm),
                   child: Row(

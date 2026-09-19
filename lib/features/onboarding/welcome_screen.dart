@@ -84,7 +84,7 @@ class WelcomeScreen extends StatelessWidget {
                                     ],
                                   ).createShader(rect),
                                   child: Text(
-                                    'Funny You!',
+                                    'Funny You',
                                     textAlign: TextAlign.center,
                                     style: AppTypography.display.copyWith(
                                       fontSize: 44,
