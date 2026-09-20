@@ -25,7 +25,7 @@ class PhotoCheckService {
     String? baseUrl,
     Map<String, String>? headers,
     this.client,
-    this.timeout = const Duration(seconds: 8),
+    this.timeout = const Duration(seconds: 20),
   })  : baseUrl = baseUrl ?? ApiConfig.baseUrl,
         headers = headers ?? ApiConfig.authHeaders;
 
@@ -38,8 +38,8 @@ class PhotoCheckService {
 
   bool get enabled => baseUrl.isNotEmpty;
 
-  /// The issue the box found, or null when it found nothing worth saying.
-  Future<PhotoIssue?> inspect(String path) async {
+  /// Everything the box found, or null when it could not be asked.
+  Future<PhotoReport?> inspect(String path) async {
     if (!enabled) return null;
     try {
       final bytes = await File(path).readAsBytes();
@@ -51,7 +51,7 @@ class PhotoCheckService {
   }
 
   @visibleForTesting
-  Future<PhotoIssue?> inspectBytes(Uint8List bytes) async {
+  Future<PhotoReport?> inspectBytes(Uint8List bytes) async {
     final request = http.MultipartRequest(
       'POST',
       Uri.parse('${baseUrl.replaceAll(RegExp(r'/$'), '')}/v1/photo-check'),
@@ -72,18 +72,28 @@ class PhotoCheckService {
 
       final body = jsonDecode(response.body);
       if (body is! Map<String, dynamic>) return null;
-      final issues = body['issues'];
-      if (issues is! List || issues.isEmpty) return null;
 
-      // The box orders its findings worst-first, so the first one it can name
-      // is the one worth putting in front of the user. Anything unrecognised
-      // is skipped rather than guessed at — a newer server must not be able
-      // to make an older app show a blank warning.
-      for (final issue in issues) {
-        final known = issueFromCode('$issue');
-        if (known != null) return known;
-      }
-      return null;
+      double? number(String key) => (body[key] as num?)?.toDouble();
+
+      // Worst first, as the box orders them. Anything this build has never
+      // heard of is dropped rather than guessed at: a newer server must not
+      // be able to make an older app show a warning it has no words for.
+      final issues = <PhotoIssue>[
+        for (final code in (body['issues'] as List? ?? const []))
+          ?issueFromCode('$code'),
+      ];
+
+      return PhotoReport(
+        issues: issues,
+        faceCount: (body['faceCount'] as num?)?.toInt(),
+        yaw: number('yaw'),
+        pitch: number('pitch'),
+        roll: number('roll'),
+        brightness: number('brightness'),
+        sharpness: number('sharpness'),
+        faceShare: number('faceShare'),
+        fromBackend: true,
+      );
     } catch (error) {
       debugPrint('PhotoCheckService: no answer from the box ($error)');
       return null;

@@ -8,6 +8,7 @@ import '../../core/i18n/strings.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../services/photo_check_service.dart';
+import 'live_light_meter.dart';
 import 'photo_quality.dart';
 import 'widgets/face_guide.dart';
 
@@ -30,12 +31,24 @@ class _CaptureScreenState extends State<CaptureScreen>
   bool _capturing = false;
   String? _error;
   String? _reviewPath;
-  PhotoIssue? _issue;
+  /// Everything the checks found, which the review screen lists in full.
+  /// The client asked to see the lighting and angle checks, and a check
+  /// nobody can see is indistinguishable from one that was never built.
+  PhotoReport? _report;
 
   /// Answers the half of the check the phone cannot: where the face is
   /// and which way it points. Silent when no backend is configured.
   final _photoCheck = PhotoCheckService();
   bool _inspecting = false;
+
+  /// Reads the camera's own frames so the light can be fixed before the
+  /// shutter rather than explained after it.
+  late final _light = LiveLightMeter(
+    onChanged: (reading) {
+      if (mounted) setState(() => _light1 = reading);
+    },
+  );
+  LightReading _light1 = LightReading.fine;
 
   bool get _cameraAvailable => _controller?.value.isInitialized ?? false;
 
@@ -49,6 +62,7 @@ class _CaptureScreenState extends State<CaptureScreen>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _light.detach(_controller);
     _controller?.dispose();
     super.dispose();
   }
@@ -97,6 +111,7 @@ class _CaptureScreenState extends State<CaptureScreen>
   }
 
   Future<void> _startController() async {
+    await _light.detach(_controller);
     await _controller?.dispose();
 
     final controller = CameraController(
@@ -111,6 +126,7 @@ class _CaptureScreenState extends State<CaptureScreen>
       return;
     }
     setState(() => _controller = controller);
+    await _light.attach(controller);
   }
 
   Future<void> _flipCamera() async {
@@ -128,27 +144,34 @@ class _CaptureScreenState extends State<CaptureScreen>
     setState(() => _capturing = true);
     HapticFeedback.mediumImpact();
     try {
+      // The plugin cannot stream frames and take a picture at the same time,
+      // and leaving the stream running turns the shutter into a silent
+      // failure on some devices.
+      await _light.detach(controller);
       final file = await controller.takePicture();
       if (!mounted) return;
       setState(() {
         _reviewPath = file.path;
-        _issue = null;
+        _report = null;
         _inspecting = true;
       });
       // Exposure and focus, read off the pixels here: instant, and it works
       // with no signal. Advisory only, and it runs after the photo is already
       // on screen so the review never waits on it.
-      var issue = await PhotoQuality.inspect(file.path);
+      // Exposure and focus first, read off the pixels here: instant, and it
+      // works with no signal.
+      final local = await PhotoQuality.inspect(file.path);
       if (!mounted) return;
 
-      // Only when the phone is happy is it worth the round trip for the part
-      // it cannot answer — is there a face, and which way is it pointing.
-      // Fails open: no backend or no signal leaves the photo accepted.
-      issue ??= await _photoCheck.inspect(file.path);
+      // Then the part the phone cannot answer -- is there a face, and which
+      // way is it pointing. Fails open: no backend or no signal leaves the
+      // photo accepted, with the phone's own reading still shown.
+      final remote = await _photoCheck.inspect(file.path);
       if (!mounted) return;
 
       setState(() {
-        _issue = issue;
+        _report = remote ??
+            PhotoReport(issues: [?local]);
         _inspecting = false;
       });
     } on CameraException catch (e) {
@@ -168,16 +191,21 @@ class _CaptureScreenState extends State<CaptureScreen>
         body: _reviewPath != null
             ? _ReviewView(
                 path: _reviewPath!,
-                issue: _issue,
+                report: _report,
                 checking: _inspecting,
-                onRetake: () => setState(() {
-                  _reviewPath = null;
-                  _issue = null;
-                }),
+                onRetake: () {
+                  setState(() {
+                    _reviewPath = null;
+                    _report = null;
+                  });
+                  final controller = _controller;
+                  if (controller != null) _light.attach(controller);
+                },
                 onConfirm: () => Navigator.of(context).pop(_reviewPath),
               )
             : _CameraView(
                 controller: _controller,
+                light: _light1,
                 initialising: _initialising,
                 capturing: _capturing,
                 error: _error,
@@ -195,6 +223,7 @@ class _CaptureScreenState extends State<CaptureScreen>
 class _CameraView extends StatelessWidget {
   const _CameraView({
     required this.controller,
+    required this.light,
     required this.initialising,
     required this.capturing,
     required this.error,
@@ -206,6 +235,9 @@ class _CameraView extends StatelessWidget {
   });
 
   final CameraController? controller;
+
+  /// How the light looks right now, read off the live preview.
+  final LightReading light;
   final bool initialising;
   final bool capturing;
   final String? error;
@@ -264,21 +296,54 @@ class _CameraView extends StatelessWidget {
               if (available)
                 Padding(
                   padding: const EdgeInsets.only(top: 20),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 18,
-                      vertical: 10,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.42),
-                      borderRadius: BorderRadius.circular(AppRadius.pill),
-                    ),
-                    child: Text(
-                      context.s.faceInCircle,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
+                  child: AnimatedSwitcher(
+                    duration: AppDuration.base,
+                    child: Container(
+                      // Keyed on the reading so the pill cross-fades when the
+                      // light changes instead of the text swapping under it.
+                      key: ValueKey(light),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 18,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        // Amber, not red: this is a nudge while there is still
+                        // time to fix it, not a rejection.
+                        color: light == LightReading.fine
+                            ? Colors.black.withValues(alpha: 0.42)
+                            : const Color(0xFFB4690E).withValues(alpha: 0.92),
+                        borderRadius: BorderRadius.circular(AppRadius.pill),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Always shown, including when the light is fine.
+                          // The meter is reading every frame either way, and
+                          // a check that only appears to complain looks like
+                          // nagging rather than help.
+                          Icon(
+                            light == LightReading.fine
+                                ? Icons.check_circle_rounded
+                                : Icons.wb_sunny_rounded,
+                            size: 18,
+                            color: light == LightReading.fine
+                                ? const Color(0xFF4ADE80)
+                                : Colors.white,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            switch (light) {
+                              LightReading.tooDark => context.s.liveTooDark,
+                              LightReading.tooBright => context.s.liveTooBright,
+                              LightReading.fine => context.s.liveLightGood,
+                            },
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -423,7 +488,7 @@ class _CameraUnavailable extends StatelessWidget {
 class _ReviewView extends StatelessWidget {
   const _ReviewView({
     required this.path,
-    required this.issue,
+    required this.report,
     required this.checking,
     required this.onRetake,
     required this.onConfirm,
@@ -431,8 +496,8 @@ class _ReviewView extends StatelessWidget {
 
   final String path;
 
-  /// What the photo checks found, or null if they were happy.
-  final PhotoIssue? issue;
+  /// Everything the checks found, or null while they are still running.
+  final PhotoReport? report;
 
   /// The check has not come back yet.
   final bool checking;
@@ -440,18 +505,15 @@ class _ReviewView extends StatelessWidget {
   final VoidCallback onRetake;
   final VoidCallback onConfirm;
 
-  String _issueText(S s) => switch (issue) {
-        PhotoIssue.tooDark => s.photoTooDark,
-        PhotoIssue.tooBright => s.photoTooBright,
-        PhotoIssue.blurry => s.photoTooBlurry,
-        PhotoIssue.noFace => s.photoNoFace,
-        PhotoIssue.manyFaces => s.photoManyFaces,
-        PhotoIssue.turned => s.photoTurned,
-        PhotoIssue.chin => s.photoChin,
-        PhotoIssue.tilted => s.photoTilted,
-        PhotoIssue.tooFar => s.photoTooFar,
-        null => '',
-      };
+  PhotoFinding? get _headline => report?.headline;
+
+  /// The one finding that means the render cannot work at all.
+  bool get _noFace => report?.has(PhotoIssue.noFace) ?? false;
+
+  String _issueText(S s) {
+    final finding = _headline;
+    return finding == null ? '' : photoIssueMessage(s, finding);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -480,7 +542,16 @@ class _ReviewView extends StatelessWidget {
               // A warning, never a block. The check reads brightness and
               // sharpness, not faces, so it can be wrong about a photo that is
               // perfectly usable. The user gets the last word.
-              if (issue != null)
+              // The whole check, passes included. Someone who took a good
+              // photo should still see that the light and the angle were
+              // looked at -- otherwise the feature only ever appears when it
+              // is complaining, which reads as nagging rather than help.
+              if (report != null)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 12),
+                  child: _CheckPanel(report: report!),
+                ),
+              if (_headline != null)
                 Padding(
                   padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
                   child: _QualityWarning(text: _issueText(context.s)),
@@ -488,7 +559,7 @@ class _ReviewView extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 32),
                 child: Text(
-                  issue == null
+                  _headline == null
                       ? context.s.happyWithPhoto
                       : context.s.useItAnyway,
                   textAlign: TextAlign.center,
@@ -504,33 +575,70 @@ class _ReviewView extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(24, 0, 24, 26),
                 child: Row(
                   children: [
+                    // With no face in the frame the render cannot work at
+                    // all: the swap has nothing to swap, the previews come
+                    // back as stock art and the video is of somebody else.
+                    // It stays the user's choice -- the check can be wrong --
+                    // but the obvious button becomes the one that helps.
                     Expanded(
-                      child: PressableScale(
-                        onPressed: onRetake,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 18),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.18),
-                            borderRadius:
-                                BorderRadius.circular(AppRadius.md),
-                          ),
-                          child: Center(
-                            child: Text(
-                              context.s.retake,
-                              style: TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white,
+                      flex: _noFace ? 2 : 1,
+                      child: _noFace
+                          ? PrimaryButton(
+                              label: context.s.retake,
+                              icon: Icons.refresh_rounded,
+                              onPressed: onRetake,
+                            )
+                          : PressableScale(
+                              onPressed: onRetake,
+                              child: Container(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 18),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.18),
+                                  borderRadius:
+                                      BorderRadius.circular(AppRadius.md),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    context.s.retake,
+                                    style: TextStyle(
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
-                          ),
-                        ),
-                      ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      flex: 2,
-                      child: PrimaryButton(
+                      flex: _noFace ? 1 : 2,
+                      child: _noFace
+                          ? PressableScale(
+                              onPressed: onConfirm,
+                              child: Container(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 18),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.14),
+                                  borderRadius:
+                                      BorderRadius.circular(AppRadius.md),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    context.s.continueLabel,
+                                    style: TextStyle(
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.w700,
+                                      color:
+                                          Colors.white.withValues(alpha: 0.82),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            )
+                          : PrimaryButton(
                         label: context.s.continueLabel,
                         icon: Icons.check_rounded,
                         loading: checking,
@@ -579,6 +687,86 @@ class _QualityWarning extends StatelessWidget {
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The photo check, listed line by line over the review photo.
+class _CheckPanel extends StatelessWidget {
+  const _CheckPanel({required this.report});
+
+  final PhotoReport report;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = context.s;
+    final lines = photoCheckLines(s, report);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.58),
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.14)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            s.checkTitle.toUpperCase(),
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.1,
+              color: Colors.white.withValues(alpha: 0.62),
+            ),
+          ),
+          const SizedBox(height: 8),
+          for (final line in lines)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 3),
+              child: Row(
+                children: [
+                  Icon(
+                    switch (line.state) {
+                      CheckState.good => Icons.check_circle_rounded,
+                      CheckState.warning => Icons.error_rounded,
+                      CheckState.unknown => Icons.remove_circle_outline_rounded,
+                    },
+                    size: 17,
+                    color: switch (line.state) {
+                      CheckState.good => const Color(0xFF4ADE80),
+                      CheckState.warning => const Color(0xFFFBBF24),
+                      CheckState.unknown => Colors.white54,
+                    },
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      line.label,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white.withValues(alpha: 0.86),
+                      ),
+                    ),
+                  ),
+                  Text(
+                    line.value,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: line.state == CheckState.warning
+                          ? const Color(0xFFFBBF24)
+                          : Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
         ],
       ),
     );

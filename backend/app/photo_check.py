@@ -141,6 +141,16 @@ class PhotoChecker:
                 self._app = None
             return self._app
 
+    def warm(self) -> bool:
+        """Load the models now, so the first person to take a selfie does not.
+
+        Loading costs several seconds the first time. Paid on demand, that
+        lands on somebody's very first photo -- long enough that the app gives
+        up waiting and tells them the check "needs a connection", which is
+        both wrong and the worst possible first impression of the feature.
+        """
+        return self._load() is not None
+
     # -- checking ---------------------------------------------------------
     def inspect(self, image: bytes) -> PhotoReport:
         """Read a JPEG or PNG and report what is wrong with it."""

@@ -32,12 +32,52 @@ void main() {
   }
 
   group('what the box found', () {
-    test('a turned head comes back as a turned head', () async {
+    test('a turned head comes back as a turned head, with the angle',
+        () async {
       final service = serviceReturning({
         'issues': ['turned'],
+        'yaw': -42.61,
         'usable': true,
       });
-      expect(await service.inspectBytes(pixels), PhotoIssue.turned);
+      final found = await service.inspectBytes(pixels);
+      expect(found?.headline?.issue, PhotoIssue.turned);
+      // The sign says which way; the advice only needs how far.
+      expect(found?.headline?.amount, 43);
+    });
+
+    test('each angle reads its own axis', () async {
+      final body = {'pitch': 25.4, 'roll': -31.8, 'yaw': 4.0};
+
+      final chin = await serviceReturning({...body, 'issues': ['chin']})
+          .inspectBytes(pixels);
+      expect(chin?.headline?.issue, PhotoIssue.chin);
+      expect(chin?.headline?.amount, 25);
+
+      final tilt = await serviceReturning({...body, 'issues': ['tilted']})
+          .inspectBytes(pixels);
+      expect(tilt?.headline?.issue, PhotoIssue.tilted);
+      expect(tilt?.headline?.amount, 32);
+    });
+
+    test('a small face is told roughly how much closer to move', () async {
+      final found = await serviceReturning({
+        'issues': ['too_far'],
+        'faceShare': 0.16,
+      }).inspectBytes(pixels);
+
+      expect(found?.headline?.issue, PhotoIssue.tooFar);
+      // 0.16 -> 0.32 is twice the size; rounded to something actionable.
+      expect(found?.headline?.amount, 100);
+    });
+
+    test('a finding the box could not measure drops the number', () async {
+      final found = await serviceReturning({
+        'issues': ['turned'],
+        'yaw': null,
+      }).inspectBytes(pixels);
+
+      expect(found?.headline?.issue, PhotoIssue.turned);
+      expect(found?.headline?.amount, isNull);
     });
 
     test('no face wins over the softer findings beside it', () async {
@@ -46,7 +86,7 @@ void main() {
       final service = serviceReturning({
         'issues': ['no_face', 'blurry'],
       });
-      expect(await service.inspectBytes(pixels), PhotoIssue.noFace);
+      expect((await service.inspectBytes(pixels))?.headline?.issue, PhotoIssue.noFace);
     });
 
     test('every code the box can send has something to say', () async {
@@ -77,16 +117,16 @@ void main() {
       final service = serviceReturning({
         'issues': ['sunglasses', 'turned'],
       });
-      expect(await service.inspectBytes(pixels), PhotoIssue.turned);
+      expect((await service.inspectBytes(pixels))?.headline?.issue, PhotoIssue.turned);
     });
   });
 
   group('failing open', () {
     test('an empty finding accepts the photo', () async {
-      expect(
-        await serviceReturning({'issues': <String>[]}).inspectBytes(pixels),
-        isNull,
-      );
+      final report =
+          await serviceReturning({'issues': <String>[]}).inspectBytes(pixels);
+      expect(report?.headline, isNull);
+      expect(report?.issues, isEmpty);
     });
 
     test('a server error accepts the photo', () async {

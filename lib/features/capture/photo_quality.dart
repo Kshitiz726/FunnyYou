@@ -3,6 +3,8 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 
+import '../../core/i18n/strings.dart';
+
 /// What a quick look at the selfie found wrong with it, if anything.
 enum PhotoIssue {
   /// Under-exposed. The single most common cause of a bad swap: the renderer
@@ -182,4 +184,213 @@ class _Luma {
   final Float32List values;
   final int width;
   final int height;
+}
+
+/// A finding, plus how far off the photo is where that could be measured.
+///
+/// "Your head is turned away" leaves someone guessing whether to move an inch
+/// or turn right round. The box measures the actual angle, so the message can
+/// say it.
+class PhotoFinding {
+  const PhotoFinding(this.issue, {this.amount});
+
+  final PhotoIssue issue;
+
+  /// Degrees off square for [PhotoIssue.turned], [PhotoIssue.chin] and
+  /// [PhotoIssue.tilted]; roughly how much closer to move, as a percentage,
+  /// for [PhotoIssue.tooFar].
+  ///
+  /// Null when the finding came from the phone, which reads exposure and
+  /// focus and has no idea where the face is.
+  final int? amount;
+}
+
+/// What to say to the person about [finding].
+///
+/// Kept out of the widget so the wording of every finding can be tested
+/// without a camera. A warning with no words is worse than no warning, and
+/// an unhandled case would give exactly that.
+String photoIssueMessage(S s, PhotoFinding finding) => switch (finding.issue) {
+      PhotoIssue.tooDark => s.photoTooDark,
+      PhotoIssue.tooBright => s.photoTooBright,
+      PhotoIssue.blurry => s.photoTooBlurry,
+      PhotoIssue.noFace => s.photoNoFace,
+      PhotoIssue.manyFaces => s.photoManyFaces,
+      PhotoIssue.turned => s.photoTurned(finding.amount),
+      PhotoIssue.chin => s.photoChin(finding.amount),
+      PhotoIssue.tilted => s.photoTilted(finding.amount),
+      PhotoIssue.tooFar => s.photoTooFar(finding.amount),
+    };
+
+/// Whether one line of the photo check passed.
+enum CheckState { good, warning, unknown }
+
+/// One line of the photo check, as the review screen shows it.
+class PhotoCheckLine {
+  const PhotoCheckLine(this.label, this.value, this.state);
+
+  /// What is being checked, e.g. "Lighting".
+  final String label;
+
+  /// What was found, e.g. "Good" or "Turned 43°".
+  final String value;
+
+  final CheckState state;
+}
+
+/// Everything the checks found about one photo.
+///
+/// The client asked for "a small program that controls the lighting quality,
+/// angle, etc", and a check nobody can see is indistinguishable from one that
+/// was never built -- so this carries the whole reading, not just the first
+/// complaint, and the review screen lists every line with its result.
+class PhotoReport {
+  const PhotoReport({
+    this.issues = const [],
+    this.faceCount,
+    this.yaw,
+    this.pitch,
+    this.roll,
+    this.brightness,
+    this.sharpness,
+    this.faceShare,
+    this.fromBackend = false,
+  });
+
+  /// Worst first, as the box orders them.
+  final List<PhotoIssue> issues;
+
+  final int? faceCount;
+  final double? yaw;
+  final double? pitch;
+  final double? roll;
+  final double? brightness;
+  final double? sharpness;
+  final double? faceShare;
+
+  /// False when only the phone's own exposure and focus check ran, so the
+  /// face lines have to say "needs a connection" rather than pretending.
+  final bool fromBackend;
+
+  bool has(PhotoIssue issue) => issues.contains(issue);
+
+  /// The one finding worth putting in front of the user, or null.
+  PhotoFinding? get headline {
+    if (issues.isEmpty) return null;
+    final first = issues.first;
+    return PhotoFinding(first, amount: amountFor(first));
+  }
+
+  /// How far off the photo is for [issue], in that finding's own unit.
+  int? amountFor(PhotoIssue issue) => switch (issue) {
+        PhotoIssue.turned => _degrees(yaw),
+        PhotoIssue.chin => _degrees(pitch),
+        PhotoIssue.tilted => _degrees(roll),
+        PhotoIssue.tooFar => _closerPercent,
+        _ => null,
+      };
+
+  /// The share of the frame a face fills in a selfie that swaps cleanly.
+  static const goodFaceShare = 0.32;
+
+  int? get _closerPercent {
+    final share = faceShare;
+    if (share == null || share <= 0) return null;
+    final closer = ((goodFaceShare / share) - 1) * 100;
+    if (closer <= 0) return null;
+    return (closer / 5).round() * 5;
+  }
+
+  /// The largest of the three head angles, which is the one worth quoting
+  /// when the head is otherwise fine.
+  int? get worstAngle {
+    final angles = [yaw, pitch, roll].whereType<double>();
+    if (angles.isEmpty) return null;
+    return angles.map((a) => a.abs()).reduce((a, b) => a > b ? a : b).round();
+  }
+
+  static int? _degrees(double? value) {
+    if (value == null) return null;
+    final rounded = value.abs().round();
+    return rounded > 0 ? rounded : null;
+  }
+}
+
+/// The photo check as a list of lines the review screen can draw.
+///
+/// Every line is always present, including the ones that passed. That is the
+/// point: the person can see the lighting and the head angle were measured,
+/// and what they came out as.
+List<PhotoCheckLine> photoCheckLines(S s, PhotoReport report) {
+  CheckState stateFor(bool bad) => bad ? CheckState.warning : CheckState.good;
+
+  final lines = <PhotoCheckLine>[
+    PhotoCheckLine(
+      s.checkLighting,
+      report.has(PhotoIssue.tooDark)
+          ? s.checkDark
+          : report.has(PhotoIssue.tooBright)
+              ? s.checkBright
+              : s.checkGood,
+      stateFor(
+        report.has(PhotoIssue.tooDark) || report.has(PhotoIssue.tooBright),
+      ),
+    ),
+    PhotoCheckLine(
+      s.checkSharpness,
+      report.has(PhotoIssue.blurry) ? s.checkSoft : s.checkSharp,
+      stateFor(report.has(PhotoIssue.blurry)),
+    ),
+  ];
+
+  // Without a backend the phone has read exposure and focus and nothing
+  // else, so the face lines say so rather than claiming a pass they did not
+  // earn.
+  if (!report.fromBackend) {
+    lines.add(
+      PhotoCheckLine(s.checkFace, s.checkNeedsConnection, CheckState.unknown),
+    );
+    return lines;
+  }
+
+  final faces = report.faceCount ?? 0;
+  lines.add(
+    PhotoCheckLine(
+      s.checkFace,
+      report.has(PhotoIssue.noFace)
+          ? s.checkFaceMissing
+          : faces > 1
+              ? s.checkFaceMany(faces)
+              : s.checkFaceFound,
+      stateFor(
+        report.has(PhotoIssue.noFace) || report.has(PhotoIssue.manyFaces),
+      ),
+    ),
+  );
+
+  // Both of these need a face to mean anything.
+  if (report.has(PhotoIssue.noFace)) return lines;
+
+  final crooked = report.has(PhotoIssue.turned) ||
+      report.has(PhotoIssue.chin) ||
+      report.has(PhotoIssue.tilted);
+  lines.add(
+    PhotoCheckLine(
+      s.checkAngle,
+      crooked
+          ? s.checkAngleOff(report.worstAngle)
+          : s.checkAngleStraight(report.worstAngle),
+      stateFor(crooked),
+    ),
+  );
+
+  lines.add(
+    PhotoCheckLine(
+      s.checkFraming,
+      report.has(PhotoIssue.tooFar) ? s.checkFramingFar : s.checkFramingGood,
+      stateFor(report.has(PhotoIssue.tooFar)),
+    ),
+  );
+
+  return lines;
 }

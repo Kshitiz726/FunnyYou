@@ -228,20 +228,78 @@ class S {
       ? 'Der er mere end ét ansigt på billedet. Prøv et, hvor du er alene.'
       : 'There is more than one face in this photo. Try one with just you in '
           'it.';
-  String get photoTurned => _da
-      ? 'Dit hoved er drejet lidt væk. Kig lige ind i kameraet, og prøv igen.'
-      : 'Your head is turned away a little. Look straight at the camera and '
-          'try again.';
-  String get photoChin => _da
-      ? 'Hagen peger lidt op eller ned. Hold telefonen i øjenhøjde.'
-      : 'Your chin is pointing up or down a little. Hold the phone at eye '
-          'level.';
-  String get photoTilted => _da
-      ? 'Dit hoved hælder til siden. Hold det lige, og prøv igen.'
-      : 'Your head is leaning to one side. Hold it straight and try again.';
-  String get photoTooFar => _da
-      ? 'Dit ansigt fylder for lidt. Gå lidt tættere på, og prøv igen.'
-      : 'Your face is a little small in the photo. Move closer and try again.';
+  // Each takes the amount the box measured, so the advice says how far off
+  // the photo is rather than leaving the person to guess. Null means the
+  // reading is missing and the sentence simply drops the number.
+  String photoTurned(int? degrees) => _da
+      ? 'Dit hoved er drejet ${_by(degrees, 'ca. $degrees° ', 'lidt ')}til '
+          'siden. Kig lige ind i kameraet, og prøv igen.'
+      : 'Your head is turned '
+          '${_by(degrees, 'about $degrees° ', 'a little ')}to the side. '
+          'Look straight at the camera and try again.';
+  String photoChin(int? degrees) => _da
+      ? 'Hagen peger ${_by(degrees, 'ca. $degrees° ', 'lidt ')}op eller ned. '
+          'Hold telefonen i øjenhøjde.'
+      : 'Your chin is ${_by(degrees, 'about $degrees° ', 'a little ')}up or '
+          'down. Hold the phone at eye level and try again.';
+  String photoTilted(int? degrees) => _da
+      ? 'Dit hoved hælder ${_by(degrees, 'ca. $degrees° ', '')}til siden. '
+          'Hold det lige, og prøv igen.'
+      : 'Your head is leaning ${_by(degrees, 'about $degrees° ', '')}to one '
+          'side. Hold it straight and try again.';
+  String photoTooFar(int? percent) => _da
+      ? 'Dit ansigt fylder for lidt. Gå '
+          '${_by(percent, 'ca. $percent% ', 'lidt ')}tættere på, og prøv igen.'
+      : 'Your face is small in the photo. Move '
+          '${_by(percent, 'about $percent% ', 'a little ')}closer and try '
+          'again.';
+
+  // The photo check, shown in full on the review screen. The client asked
+  // for something that "controls the lighting quality, angle, etc"; a check
+  // that only speaks up when it is unhappy is indistinguishable from one
+  // that was never built, so every line is listed with what it found.
+  String get checkTitle => _da ? 'Tjek af billedet' : 'Photo check';
+  String get checkLighting => _da ? 'Lys' : 'Lighting';
+  String get checkSharpness => _da ? 'Skærpe' : 'Sharpness';
+  String get checkFace => _da ? 'Ansigt' : 'Face';
+  String get checkAngle => _da ? 'Hovedets vinkel' : 'Head angle';
+  String get checkFraming => _da ? 'Afstand' : 'Framing';
+
+  String get checkGood => _da ? 'Godt' : 'Good';
+  String get checkSharp => _da ? 'Skarpt' : 'Sharp';
+  String get checkSoft => _da ? 'Lidt sløret' : 'A little soft';
+  String get checkDark => _da ? 'For mørkt' : 'Too dark';
+  String get checkBright => _da ? 'For lyst' : 'Too bright';
+  String get checkFaceFound => _da ? 'Fundet' : 'Found';
+  String get checkFaceMissing => _da ? 'Ikke fundet' : 'Not found';
+  String checkFaceMany(int count) =>
+      _da ? '$count ansigter' : '$count faces';
+  String get checkNeedsConnection =>
+      _da ? 'Kræver forbindelse' : 'Needs a connection';
+  String checkAngleStraight(int? degrees) => degrees == null
+      ? (_da ? 'Lige på' : 'Straight on')
+      : (_da ? 'Lige på ($degrees°)' : 'Straight on ($degrees°)');
+  String checkAngleOff(int? degrees) => degrees == null
+      ? (_da ? 'Drejet' : 'Turned')
+      : (_da ? 'Drejet $degrees°' : 'Turned $degrees°');
+  String get checkFramingGood => _da ? 'God afstand' : 'Good distance';
+  String get checkFramingFar => _da ? 'For langt væk' : 'Too far away';
+
+  // Live, while the camera is still open, so the light can be fixed before
+  // the shutter rather than explained after it. Short: it sits over a live
+  // preview and the person is looking at themselves, not at us.
+  String get liveLightGood => _da ? 'Godt lys' : 'Good light';
+  String get liveTooDark =>
+      _da ? 'For mørkt — vend dig mod et vindue' : 'Too dark - face a window';
+  String get liveTooBright => _da
+      ? 'For lyst — flyt dig lidt væk fra lyset'
+      : 'Too bright - move away from the light';
+
+  /// Uses the measured wording when there is a reading, the vague one when
+  /// there is not. A sentence reading "about null degrees" would be worse
+  /// than saying nothing precise at all.
+  String _by(int? value, String measured, String vague) =>
+      value == null || value <= 0 ? vague : measured;
   String get useItAnyway => _da ? 'Brug det alligevel' : 'Use it anyway';
 
   // ── Ad break ──────────────────────────────────────────────────────────
