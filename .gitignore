@@ -94,3 +94,6 @@ backend/templates/*.jpg
 
 # Editor-local, and it stores an absolute path from one machine.
 /.vscode/
+
+# Local launcher: contains the backend API key
+/run_pod.sh
