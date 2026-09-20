@@ -201,3 +201,61 @@ the app falls back to its designed artwork and still sells videos.
 - [ ] Add NSFW/consent checks on uploaded faces — you are putting real people's
       likenesses into generated video, which carries obvious abuse potential
 - [ ] Set a spend cap on the RunPod endpoint
+
+---
+
+## Running it on a live Pod (what is deployed today)
+
+The API and ComfyUI share one pod. ComfyUI stays on 127.0.0.1:8188 and is never
+exposed; the API sits in front of it on **8888**, because 8888 is the only port
+RunPod proxies over HTTPS on these pods. That proxy URL is what the phone talks
+to:
+
+```
+https://<pod id>-8888.proxy.runpod.net
+```
+
+The pod id is the part before the dash in the SSH user (`omzci9iankc2pz-...`).
+It changes if the pod is recreated.
+
+### After every container restart
+
+The network volume keeps ComfyUI, the models and the node packs. The
+container's Python environment does **not** survive — site-packages is wiped,
+and the base image's torch 2.4.1 cannot drive a Blackwell card. So:
+
+```bash
+bash /workspace/bringup.sh            # ~10 min, mostly the torch download
+setsid bash -c "/workspace/start_comfy.sh > /workspace/comfy.log 2>&1" &
+setsid bash -c "/workspace/start_api.sh  > /workspace/api.log   2>&1" &
+curl -s localhost:8888/v1/health
+```
+
+`bringup.sh` must finish before ComfyUI starts, or the custom nodes import
+against the wrong torch and `ReActor` disappears with no obvious error.
+
+Packages land on the container overlay (19 GB free), not the volume, so the
+volume quota does not block the rebuild. The volume is a different story: it
+is ~60 GB and ComfyUI alone is 55 GB of it. See the notes on quota traps
+before downloading anything new there.
+
+### Jupyter
+
+The stock pod runs Jupyter on 8888, and only one process can hold the port, so
+starting the API stops Jupyter. To swap back:
+
+```bash
+pkill -f "uvicorn app.main"
+bash /workspace/restart_jupyter.sh
+```
+
+### Pointing the app at it
+
+```bash
+flutter run \
+  --dart-define=API_BASE_URL=https://<pod id>-8888.proxy.runpod.net \
+  --dart-define=API_KEY=<the API_KEY from backend/.env on the pod>
+```
+
+`run_pod.sh` in the repo root does exactly this and is gitignored, since it
+carries the key. With no dart-defines the app runs on mocks, unchanged.
