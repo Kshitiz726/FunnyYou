@@ -11,6 +11,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 from pathlib import Path
@@ -21,6 +22,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from starlette.concurrency import run_in_threadpool
 
 from .config import Settings, get_settings
+from .images import upright
 from .jobs import JobStore
 from .photo_check import build_checker
 from .preview_service import PreviewError, PreviewService
@@ -74,7 +76,34 @@ async def _read_upload(file: UploadFile) -> bytes:
             status_code=413,
             detail=f"Image exceeds {settings.max_upload_bytes // (1024 * 1024)} MB",
         )
-    return data
+    # Every image this service reads comes through here, so this is the one
+    # place the "landscape pixels plus a rotate-me tag" problem has to be
+    # solved. Left alone, the face detector and the face swap both see a
+    # sideways face, find nothing, and fail silently. See `images.upright`.
+    return upright(data)
+
+
+@app.on_event("startup")
+async def _clear_orphaned_work() -> None:
+    """Drop anything ComfyUI was running for the process we replaced.
+
+    The job store is in memory, so a restart loses every job it was tracking
+    -- but ComfyUI carries on rendering for the one it was mid-way through,
+    holding the GPU for up to twenty minutes on a result nobody will collect,
+    with every new preview queued behind it. See `abandon_everything`.
+    """
+    client = getattr(renders._provider, "_client", None)  # noqa: SLF001
+    drop = getattr(client, "abandon_everything", None)
+    if drop is not None:
+        await drop()
+
+    # Load the selfie check's models in the background. Not awaited: it takes
+    # several seconds and nothing else needs it to have finished, but paying
+    # it on the first real selfie is long enough that the app times out and
+    # reports the check as unavailable.
+    asyncio.get_running_loop().create_task(
+        run_in_threadpool(photo_checker.warm)
+    )
 
 
 @app.get("/v1/health")

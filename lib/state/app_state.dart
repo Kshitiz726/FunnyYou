@@ -115,19 +115,42 @@ class AppState extends ChangeNotifier {
     notifyListeners();
 
     try {
+      // Ask what the box can render *before* deciding which previews matter.
+      // This used to run alongside the health check rather than after it, so
+      // the shortlist was computed against "don't know yet" and fell back to
+      // the home rail's tiles -- leaving the picker's lead scenario, the one
+      // the user is most likely to pick because it is the only one that can
+      // actually be rendered, as the single tile with no face on it.
+      //
+      // Bounded: one round trip against a job that takes a minute is free,
+      // but a backend that never answers must not stop previews happening at
+      // all. Timing out just means the optimistic order, which is what this
+      // did before.
+      await ServiceLocator.instance.backend.refreshIfUnknown().timeout(
+            const Duration(seconds: 6),
+            onTimeout: () {},
+          );
+
       // The home rail's tiles, plus whatever the post-selfie picker is about
       // to show. Those two used to be assumed identical; once the backend
       // started reporting which scenarios it can actually render, the picker
       // began leading with renderable ones, and a tile it showed from outside
       // previewSet had no face to display. Generating all 40 is not the
       // answer -- each one is a real API call for art most people never see.
+      //
+      // The picker's four go **first**. Each swap is a real call on the render
+      // box and they arrive one at a time, so the order here is the order the
+      // user watches them fill in -- and the four the picker shows are the
+      // ones they are looking at the moment the ad ends. Generating the home
+      // rail first left those four as stock art for the best part of a minute,
+      // which reads as the feature being broken rather than being slow.
       final wanted = <String, VideoTemplate>{
-        for (final t in TemplateCatalog.previewSet) t.id: t,
         for (final t in TemplateCatalog.shortlist(
           renderable: ServiceLocator.instance.backend.renderableTemplates,
           count: QuickPickScreen.shortlistLength,
         ))
           t.id: t,
+        for (final t in TemplateCatalog.previewSet) t.id: t,
       };
 
       await for (final batch in service.generate(

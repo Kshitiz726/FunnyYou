@@ -106,6 +106,36 @@ class ComfyClient:
         except (httpx.HTTPError, OSError):
             return False
 
+    async def abandon_everything(self) -> None:
+        """Interrupt whatever is running and empty the queue.
+
+        Called once when the API starts. The API is the only thing that queues
+        work on this box, so anything ComfyUI is still chewing on at that
+        moment belongs to a process that no longer exists -- the job it was
+        for died with the old JobStore and nobody will ever collect its
+        result.
+
+        Left alone it is worse than wasted: a Wan render takes twenty minutes,
+        holds the GPU the whole time, and every preview the restarted API
+        queues sits behind it in ComfyUI's own queue. The app shows "making
+        your previews" and nothing arrives, which is indistinguishable from
+        the feature being broken.
+
+        Never raises. A box that is not up yet is the supervisor's problem,
+        not a reason to refuse to start.
+        """
+        try:
+            async with httpx.AsyncClient(timeout=30) as http:
+                await http.post(f"{self._base}/interrupt")
+                await http.post(f"{self._base}/queue", json={"clear": True})
+                await http.post(
+                    f"{self._base}/free",
+                    json={"unload_models": True, "free_memory": True},
+                )
+            log.info("Cleared any work left over from a previous API process")
+        except (httpx.HTTPError, OSError, ValueError) as exc:
+            log.warning("Could not clear ComfyUI's queue at startup: %r", exc)
+
     async def free_models(self) -> None:
         """Ask ComfyUI to unload every cached model and release its memory.
 
