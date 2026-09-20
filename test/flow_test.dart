@@ -231,6 +231,36 @@ void main() {
         reason: 'the same scenario must not take two of the four slots');
   });
 
+  test('the picker leads with scenarios the backend can actually render', () {
+    // The pod ships template clips one scenario at a time. Ranking the four
+    // tiles by "has a face preview" alone put four unrenderable scenarios on
+    // the screen, every one of them badged "Soon" -- nothing to tap. Mocks
+    // hide this, because a mock backend claims everything renders.
+    final only = TemplateCatalog.all
+        .firstWhere((t) => !TemplateCatalog.previewSet.any((p) => p.id == t.id));
+
+    final picked = TemplateCatalog.shortlist(
+      renderable: {only.id},
+      count: QuickPickScreen.shortlistLength,
+    );
+
+    expect(picked.first.id, only.id,
+        reason: 'the one renderable scenario must lead');
+    expect(picked, hasLength(QuickPickScreen.shortlistLength),
+        reason: 'the client asked for four images, renderable or not');
+  });
+
+  test('with no backend answer the shortlist is preview-backed', () {
+    final picked = TemplateCatalog.shortlist(
+      count: QuickPickScreen.shortlistLength,
+    );
+    final previewIds = TemplateCatalog.previewSet.map((t) => t.id).toSet();
+    for (final t in picked) {
+      expect(previewIds, contains(t.id),
+          reason: 'every tile should show the user where we can');
+    }
+  });
+
   test('credits gate generation', () async {
     final state = await _state({});
     expect(state.canGenerate, isFalse);

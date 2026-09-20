@@ -552,6 +552,48 @@ abstract final class TemplateCatalog {
     ].where((t) => seen.add(t.id)).toList(growable: false);
   }
 
+  /// The scenarios to put in front of someone who has just taken their selfie.
+  ///
+  /// Ordered by what the renderer can actually produce. [renderable] is the
+  /// set the backend reports; null means it has not answered yet, or does not
+  /// gate on templates at all, and then every scenario is fair game.
+  ///
+  /// Renderability has to lead. Ranking these purely by "has a face preview"
+  /// put superhero, astronaut, rock guitarist and king on the screen while the
+  /// pod had a clip for none of them — four tiles, four "Soon" badges, nothing
+  /// to tap. The mock backend claims everything renders, so it only appeared
+  /// once a real one was connected.
+  ///
+  /// Within each tier the preview set comes first, so a tile shows the user's
+  /// own face wherever we have one.
+  static List<VideoTemplate> shortlist({
+    Set<String>? renderable,
+    int count = 4,
+  }) {
+    final previewIds = previewSet.map((t) => t.id).toSet();
+    bool ready(VideoTemplate t) =>
+        renderable == null || renderable.contains(t.id);
+
+    final ranked = [...previewSet, ...all];
+    final seen = <String>{};
+    final tiers = <List<VideoTemplate>>[[], [], [], []];
+
+    for (final t in ranked) {
+      if (!seen.add(t.id)) continue;
+      final tier = switch ((ready(t), previewIds.contains(t.id))) {
+        (true, true) => 0,
+        (true, false) => 1,
+        (false, true) => 2,
+        (false, false) => 3,
+      };
+      tiers[tier].add(t);
+    }
+
+    return [for (final tier in tiers) ...tier].take(count).toList(
+          growable: false,
+        );
+  }
+
   /// Whether this scenario shows real generated art to a user who has not paid.
   static bool isFreePreview(String templateId) =>
       previewSet.any((t) => t.id == templateId);

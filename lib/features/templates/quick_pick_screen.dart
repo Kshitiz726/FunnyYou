@@ -53,20 +53,18 @@ class _QuickPickScreenState extends State<QuickPickScreen> {
 
   /// The four scenarios on offer.
   ///
-  /// Always the same four, and always ones a preview is being generated for.
+  /// Always the same four for a given backend, and renderable ones lead, so
+  /// the screen never offers four things that cannot be made. See
+  /// [TemplateCatalog.shortlist].
   ///
-  /// This used to sort the whole catalogue by "has a preview yet", which meant
-  /// the grid reshuffled under the user's thumb: previews stream in one at a
-  /// time after the selfie, and each arrival promoted a different scenario
-  /// into the visible four. Someone reaching for a tile could have it move.
-  ///
-  /// Taking the head of [TemplateCatalog.previewSet] instead fixes the four
-  /// before the first preview lands, so the images fill in where they already
-  /// are and nothing moves. Every one of them is a scenario the user's own
-  /// face is being rendered into, which is the brief: four images of *them*.
-  List<VideoTemplate> _shortlist() => TemplateCatalog.previewSet
-      .take(QuickPickScreen.shortlistLength)
-      .toList(growable: false);
+  /// This used to sort the catalogue by "has a preview yet", which meant the
+  /// grid reshuffled under the user's thumb: previews stream in one at a time
+  /// after the selfie, and each arrival promoted a different scenario into the
+  /// visible four. Someone reaching for a tile could have it move.
+  List<VideoTemplate> _shortlist() => TemplateCatalog.shortlist(
+        renderable: ServiceLocator.instance.backend.renderableTemplates,
+        count: QuickPickScreen.shortlistLength,
+      );
 
   void _choose(VideoTemplate template) {
     HapticFeedback.selectionClick();
@@ -138,8 +136,14 @@ class _QuickPickScreenState extends State<QuickPickScreen> {
                     // Previews arrive one at a time after the selfie, and
                     // each arrival can change which four scenarios lead, so
                     // the shortlist is rebuilt whenever the store moves.
+                    // Rebuilds on both: previews arrive one at a time, and
+                    // the backend's list of renderable scenarios lands after
+                    // launch. Either can change which four belong here.
                     child: AnimatedBuilder(
-                      animation: previews,
+                      animation: Listenable.merge([
+                        previews,
+                        ServiceLocator.instance.backend,
+                      ]),
                       builder: (context, _) {
                         final shortlist = _shortlist();
                         // Centred, not top-aligned: four tiles do not fill a

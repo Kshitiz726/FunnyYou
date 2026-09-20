@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../core/i18n/strings.dart';
 import '../data/models.dart';
 import '../data/templates.dart';
+import '../features/templates/quick_pick_screen.dart';
 import '../services/service_locator.dart';
 
 /// App-wide session + persisted state.
@@ -114,11 +115,24 @@ class AppState extends ChangeNotifier {
     notifyListeners();
 
     try {
+      // The home rail's tiles, plus whatever the post-selfie picker is about
+      // to show. Those two used to be assumed identical; once the backend
+      // started reporting which scenarios it can actually render, the picker
+      // began leading with renderable ones, and a tile it showed from outside
+      // previewSet had no face to display. Generating all 40 is not the
+      // answer -- each one is a real API call for art most people never see.
+      final wanted = <String, VideoTemplate>{
+        for (final t in TemplateCatalog.previewSet) t.id: t,
+        for (final t in TemplateCatalog.shortlist(
+          renderable: ServiceLocator.instance.backend.renderableTemplates,
+          count: QuickPickScreen.shortlistLength,
+        ))
+          t.id: t,
+      };
+
       await for (final batch in service.generate(
         facePhotoPath: facePhotoPath,
-        // Only the tiles visible before scrolling. Generating all 40 costs
-        // real money per user for art most of them never scroll to.
-        templates: TemplateCatalog.previewSet,
+        templates: wanted.values.toList(growable: false),
       )) {
         _previewProgress = batch.progress;
         notifyListeners();
