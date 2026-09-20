@@ -106,6 +106,30 @@ class ComfyClient:
         except (httpx.HTTPError, OSError):
             return False
 
+    async def free_models(self) -> None:
+        """Ask ComfyUI to unload every cached model and release its memory.
+
+        ComfyUI keeps a queued prompt's models resident after it finishes, so
+        the next prompt loads its own on top. That is the right default for a
+        UI, where the next prompt is usually the same graph again — and fatal
+        here: this container is capped at 62 GB, Wan's weights are ~28 GB, and
+        the face-restore pass loading its own on top of them is what gets the
+        whole server OOM-killed after fifteen minutes of work. The two-pass
+        split only buys anything if the first pass's models actually go away
+        in between, and that takes asking.
+
+        Best-effort. A failure here costs memory, not correctness, so it must
+        never take down a render that has otherwise succeeded.
+        """
+        try:
+            async with httpx.AsyncClient(timeout=120) as http:
+                await http.post(
+                    f"{self._base}/free",
+                    json={"unload_models": True, "free_memory": True},
+                )
+        except (httpx.HTTPError, OSError) as exc:
+            log.warning("Could not free ComfyUI models: %r", exc)
+
     async def upload_image(self, data: bytes, filename: str) -> str:
         """Push an image into ComfyUI's input folder. Returns its input name."""
         try:

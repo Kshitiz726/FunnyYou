@@ -199,11 +199,20 @@ class _ComfyProvider:
         Both passes could live in one graph, and briefly did — but the render
         box has a 62 GB container limit, and holding Wan's ~28 GB of weights
         resident while ReActor loads its own is enough to get the whole server
-        OOM-killed at the final encode, after fifteen minutes of work. Two
-        passes let ComfyUI drop the first stage's models before the second
-        starts. It is also how these renders were originally produced.
+        OOM-killed at the final encode, after fifteen minutes of work. It is
+        also how these renders were originally produced.
+
+        Splitting them is not on its own enough: ComfyUI keeps a finished
+        prompt's models loaded, so pass two stacked its weights on pass one's
+        and hit the cap anyway — the server died with no traceback, mid
+        ReActor, and the job hung until it timed out. The unload below is the
+        part that actually makes the split work.
         """
         report(1.0, "sharpening the face")
+
+        # Before anything of pass two is loaded, and before the upload, so the
+        # peak never holds both stages' weights at once.
+        await client.free_models()
 
         # The first stage's result lives in ComfyUI's *output* folder; a
         # loader reads from *input*, so it has to go back over the wire.
