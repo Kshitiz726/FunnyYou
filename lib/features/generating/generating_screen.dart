@@ -272,6 +272,11 @@ class _ProgressRing extends StatelessWidget {
                 template: template,
                 facePhotoPath: facePhotoPath,
                 iconSize: 58,
+                // The badge is laid out for a rectangular tile: it sits in the
+                // top-right corner, which a circle cuts straight through, so
+                // it came out as a clipped "Y". Nothing on this screen needs
+                // it either -- the whole screen is about the user's video.
+                showYouBadge: false,
               ),
             ),
           ),
@@ -281,12 +286,22 @@ class _ProgressRing extends StatelessWidget {
               padding:
                   const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
               decoration: BoxDecoration(
-                color: AppColors.ink,
+                // Not AppColors.ink. That is the *text* colour, and since the
+                // app went dark it is pure white -- so this painted a white
+                // pill and then wrote white text on it. The percentage was
+                // there the whole time, invisible, which read as a stray white
+                // blob sitting on the artwork.
+                color: AppColors.surface,
                 borderRadius: BorderRadius.circular(AppRadius.pill),
+                border: Border.all(color: AppColors.hairline),
+                boxShadow: AppShadows.card,
               ),
               child: Text(
                 '${(progress * 100).round()}%',
-                style: AppTypography.caption.copyWith(color: Colors.white),
+                style: AppTypography.caption.copyWith(
+                  color: AppColors.ink,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
             ),
           ),
