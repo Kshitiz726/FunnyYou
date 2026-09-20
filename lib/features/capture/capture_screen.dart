@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import '../../core/i18n/strings.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/app_buttons.dart';
+import '../../services/photo_check_service.dart';
 import 'photo_quality.dart';
 import 'widgets/face_guide.dart';
 
@@ -30,6 +31,10 @@ class _CaptureScreenState extends State<CaptureScreen>
   String? _error;
   String? _reviewPath;
   PhotoIssue? _issue;
+
+  /// Answers the half of the check the phone cannot: where the face is
+  /// and which way it points. Silent when no backend is configured.
+  final _photoCheck = PhotoCheckService();
   bool _inspecting = false;
 
   bool get _cameraAvailable => _controller?.value.isInitialized ?? false;
@@ -130,10 +135,18 @@ class _CaptureScreenState extends State<CaptureScreen>
         _issue = null;
         _inspecting = true;
       });
-      // Reads the pixels for exposure and focus. Advisory only, and it runs
-      // after the photo is already on screen so the review never waits on it.
-      final issue = await PhotoQuality.inspect(file.path);
+      // Exposure and focus, read off the pixels here: instant, and it works
+      // with no signal. Advisory only, and it runs after the photo is already
+      // on screen so the review never waits on it.
+      var issue = await PhotoQuality.inspect(file.path);
       if (!mounted) return;
+
+      // Only when the phone is happy is it worth the round trip for the part
+      // it cannot answer — is there a face, and which way is it pointing.
+      // Fails open: no backend or no signal leaves the photo accepted.
+      issue ??= await _photoCheck.inspect(file.path);
+      if (!mounted) return;
+
       setState(() {
         _issue = issue;
         _inspecting = false;
@@ -418,7 +431,7 @@ class _ReviewView extends StatelessWidget {
 
   final String path;
 
-  /// What the exposure and focus check found, or null if it was happy.
+  /// What the photo checks found, or null if they were happy.
   final PhotoIssue? issue;
 
   /// The check has not come back yet.
@@ -431,6 +444,12 @@ class _ReviewView extends StatelessWidget {
         PhotoIssue.tooDark => s.photoTooDark,
         PhotoIssue.tooBright => s.photoTooBright,
         PhotoIssue.blurry => s.photoTooBlurry,
+        PhotoIssue.noFace => s.photoNoFace,
+        PhotoIssue.manyFaces => s.photoManyFaces,
+        PhotoIssue.turned => s.photoTurned,
+        PhotoIssue.chin => s.photoChin,
+        PhotoIssue.tilted => s.photoTilted,
+        PhotoIssue.tooFar => s.photoTooFar,
         null => '',
       };
 

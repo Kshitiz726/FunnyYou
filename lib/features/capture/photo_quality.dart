@@ -14,15 +14,46 @@ enum PhotoIssue {
 
   /// Soft. Either camera shake or the subject moving.
   blurry,
+
+  // The rest need to know where the face is, so they are decided on the
+  // render box rather than here. See `PhotoCheckService`.
+
+  /// Nothing face-shaped in the frame. The only finding that means the
+  /// render genuinely cannot work, rather than will not look its best.
+  noFace,
+
+  /// More than one face. The swap picks the biggest, which may not be the
+  /// person holding the phone.
+  manyFaces,
+
+  /// Head turned away from the camera. Past about twenty degrees of yaw the
+  /// swap starts losing the likeness it is supposed to preserve.
+  turned,
+
+  /// Chin up or down. Pitch, the same problem on the other axis.
+  chin,
+
+  /// Head tilted sideways. Roll.
+  tilted,
+
+  /// Face too small in the frame to swap cleanly.
+  tooFar,
 }
 
 /// A cheap sanity check on a captured selfie.
 ///
 /// Deliberately **not** a face detector. Detecting where a face is, and which
 /// way it is pointing, needs ML Kit (`google_mlkit_face_detection`), which is
-/// a large native dependency and an iOS pod. What this does instead is read
-/// the pixels for the two things that go wrong most often and that a person
-/// can actually fix by taking the photo again: exposure and focus.
+/// a large native dependency and an iOS pod that raises the minimum iOS
+/// version. What this does instead is read the pixels for the two things that
+/// go wrong most often and that a person can actually fix by taking the photo
+/// again: exposure and focus.
+///
+/// The face itself — found, how many, and which way it points — is answered by
+/// `PhotoCheckService` against the render box, which is already running
+/// InsightFace for the swap. That keeps the angle check accurate and the app
+/// free of native dependencies, at the cost of needing a connection; when
+/// there is none the app still gets this much.
 ///
 /// It runs on a 96px thumbnail decoded by Flutter's own image codec, so there
 /// is no package to add and it costs a few milliseconds.

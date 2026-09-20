@@ -5,6 +5,7 @@
     DELETE /v1/renders/{id}       cancel
     GET  /v1/videos/{file}        download the finished mp4
     POST /v1/previews             free Gemini style stills
+    POST /v1/photo-check          lighting, focus and head angle on a selfie
     GET  /v1/health               readiness + config check
 """
 
@@ -17,9 +18,11 @@ from pathlib import Path
 from fastapi import Depends, FastAPI, File, Form, Header, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
+from starlette.concurrency import run_in_threadpool
 
 from .config import Settings, get_settings
 from .jobs import JobStore
+from .photo_check import build_checker
 from .preview_service import PreviewError, PreviewService
 from .providers import build_image_provider
 from .render_service import RenderService
@@ -34,6 +37,7 @@ settings = get_settings()
 store = JobStore()
 renders = RenderService(settings, store)
 previews = PreviewService(build_image_provider(settings))
+photo_checker = build_checker(settings)
 
 log.info(
     # Plain ASCII: this goes to a console, and Windows defaults to cp1252.
@@ -133,6 +137,28 @@ async def get_video(filename: str) -> FileResponse:
     if not str(path).startswith(str(root)) or not path.is_file():
         raise HTTPException(status_code=404, detail="Video not found")
     return FileResponse(path, media_type="video/mp4", filename=path.name)
+
+
+@app.post("/v1/photo-check", dependencies=[Depends(require_key)])
+async def check_photo(image: UploadFile = File(...)) -> JSONResponse:
+    """Report what is wrong with a selfie before it is rendered.
+
+    Advice, not a gate. The phone has already read exposure and focus off
+    the pixels; what it cannot do without a large native dependency is find
+    the face and say which way it is pointing, so that part happens here on
+    the models the face swap already uses.
+
+    Never fails the request. If the check itself breaks the caller gets an
+    empty finding, which reads as "nothing wrong" -- the alternative is
+    blocking somebody's perfectly good photo over our own fault.
+    """
+    data = await _read_upload(image)
+    try:
+        report = await run_in_threadpool(photo_checker.inspect, data)
+    except Exception as exc:  # noqa: BLE001
+        log.warning("Photo check failed, letting the photo through: %r", exc)
+        return JSONResponse({"issues": [], "usable": True})
+    return JSONResponse(report.to_json())
 
 
 @app.post("/v1/previews", dependencies=[Depends(require_key)])

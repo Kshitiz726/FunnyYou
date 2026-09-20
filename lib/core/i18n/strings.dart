@@ -217,6 +217,31 @@ class S {
   String get photoTooBlurry => _da
       ? 'Billedet er lidt sløret. Hold telefonen stille, og prøv igen.'
       : 'This photo is a little blurry. Hold the phone still and try again.';
+  // Found on the render box, which can see where the face is. Same rule:
+  // every one of these is a suggestion with a way past it.
+  String get photoNoFace => _da
+      ? 'Vi kan ikke finde et ansigt på billedet. Hold hele ansigtet inde i '
+          'cirklen, og prøv igen.'
+      : "We can't find a face in this photo. Keep your whole face inside the "
+          'circle and try again.';
+  String get photoManyFaces => _da
+      ? 'Der er mere end ét ansigt på billedet. Prøv et, hvor du er alene.'
+      : 'There is more than one face in this photo. Try one with just you in '
+          'it.';
+  String get photoTurned => _da
+      ? 'Dit hoved er drejet lidt væk. Kig lige ind i kameraet, og prøv igen.'
+      : 'Your head is turned away a little. Look straight at the camera and '
+          'try again.';
+  String get photoChin => _da
+      ? 'Hagen peger lidt op eller ned. Hold telefonen i øjenhøjde.'
+      : 'Your chin is pointing up or down a little. Hold the phone at eye '
+          'level.';
+  String get photoTilted => _da
+      ? 'Dit hoved hælder til siden. Hold det lige, og prøv igen.'
+      : 'Your head is leaning to one side. Hold it straight and try again.';
+  String get photoTooFar => _da
+      ? 'Dit ansigt fylder for lidt. Gå lidt tættere på, og prøv igen.'
+      : 'Your face is a little small in the photo. Move closer and try again.';
   String get useItAnyway => _da ? 'Brug det alligevel' : 'Use it anyway';
 
   // ── Ad break ──────────────────────────────────────────────────────────
