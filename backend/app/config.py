@@ -154,6 +154,24 @@ class Settings:
         default_factory=lambda: _env("PUBLIC_BASE_URL", "http://127.0.0.1:8000")
     )
 
+    # How to bring ComfyUI back when it stops answering. Run by the API
+    # after a render fails against a dead server, before it tries again --
+    # the one failure the customer cannot do anything about, and the one most
+    # likely to happen when nobody is watching. Empty disables the restart,
+    # which is what you want on a laptop. See `gpu_guard.ComfySupervisor`.
+    comfy_restart_cmd: str = field(
+        default_factory=lambda: _env("COMFY_RESTART_CMD", "")
+    )
+
+    # Where InsightFace keeps its model folders, for the selfie check that
+    # reports which way the head is pointing. Expects the directory holding
+    # `models/buffalo_l` -- ComfyUI has already downloaded these. Empty means
+    # look in the usual place on the pod, and failing that skip the face part
+    # of the check and report exposure and focus only.
+    insightface_root: str = field(
+        default_factory=lambda: _env("INSIGHTFACE_ROOT", "")
+    )
+
     # ── Service ───────────────────────────────────────────────────────────
     api_key: str = field(default_factory=lambda: _env("API_KEY"))
     max_upload_bytes: int = field(

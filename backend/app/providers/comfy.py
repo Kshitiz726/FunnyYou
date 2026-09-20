@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import asyncio
 import io
+import math
 import logging
 from pathlib import Path
 
@@ -25,6 +26,7 @@ from typing import TYPE_CHECKING
 
 from .. import workflow as wf
 from ..comfy_client import ComfyAsset, ComfyClient, ComfyError, ComfyRenderFailed
+from ..gpu_guard import gpu_turn
 from ..still_library import StillLibrary
 from .base import Asset, ImageProvider, ProgressHook, ProviderError, VideoProvider
 
@@ -132,6 +134,19 @@ def _phase(node_type: str | None) -> str | None:
     return _PHASES.get(node_type or "")
 
 
+def _span(report: ProgressHook, low: float, high: float) -> ProgressHook:
+    """Re-aim a pass's own 0..1 at its slice of the whole render's bar.
+
+    A pass knows how far through itself it is and nothing about the pass
+    beside it, so left alone each one drives the bar from empty to full.
+    """
+
+    def scaled(value: float | None, note: str) -> None:
+        report(None if value is None else low + value * (high - low), note)
+
+    return scaled
+
+
 class _ComfyProvider:
     """Upload, bind, queue, follow, download — shared by both providers."""
 
@@ -164,7 +179,23 @@ class _ComfyProvider:
     _poll_timeout_s = 1800.0
     _progress_idle_timeout_s = 120.0
 
-    async def _await_outputs(self, client, prompt_id: str):
+    # How the two queued passes divide the bar. Pass one — segmentation,
+    # pose, then eight sampler steps on a 14B model — is the long one; pass
+    # two runs a face restore over frames that already exist. Measured on
+    # the pod at roughly thirteen minutes against six.
+    #
+    # Both passes used to report into the same 0..1, and the store refuses
+    # to let progress go backwards, so pass one finishing pinned the ring at
+    # its maximum and the whole of pass two ran inside that last pixel.
+    _pass_one_share = 0.7
+
+    # When the progress socket goes quiet we keep the ring creeping toward,
+    # but never onto, the end of the pass. Sized to the silence we actually
+    # see: the Wan sampler emits nothing across its whole eight-step run.
+    _stall_time_constant_s = 360.0
+    _stall_ceiling = 0.97
+
+    async def _await_outputs(self, client, prompt_id: str, on_wait=None):
         """Poll history for the finished render.
 
         The websocket is a nicety for the progress bar; history is the source
@@ -173,10 +204,12 @@ class _ComfyProvider:
         that already happened. Polling cannot miss it, because the result is
         sitting in history either way.
         """
-        deadline = asyncio.get_running_loop().time() + self._poll_timeout_s
+        loop = asyncio.get_running_loop()
+        started = loop.time()
+        deadline = started + self._poll_timeout_s
         last_error: ComfyError | None = None
 
-        while asyncio.get_running_loop().time() < deadline:
+        while loop.time() < deadline:
             try:
                 return await client.outputs(prompt_id)
             except ComfyRenderFailed:
@@ -186,12 +219,29 @@ class _ComfyProvider:
             except ComfyError as exc:
                 # "no history yet" simply means it is still queued or running.
                 last_error = exc
+                if on_wait is not None:
+                    on_wait(loop.time() - started)
                 await asyncio.sleep(self._poll_interval_s)
 
         raise ComfyError(
             f"Render did not finish within {self._poll_timeout_s}s"
             + (f" ({last_error})" if last_error else "")
         )
+
+    def _creep(self, report: ProgressHook, reached: float, note: str):
+        """Keep a pass's share of the bar moving while we poll history blind.
+
+        Asymptotic on purpose: it has no idea how much is left, so it must
+        never be able to arrive. A ring that crawls is honest about not
+        knowing; a ring parked at the end is a promise the render breaks.
+        """
+        ceiling = max(reached, self._stall_ceiling)
+
+        def on_wait(elapsed: float) -> None:
+            share = 1.0 - math.exp(-elapsed / self._stall_time_constant_s)
+            report(reached + (ceiling - reached) * share, note)
+
+        return on_wait
 
     async def _polish(self, client, data, chosen, image_name, prefer, report):
         """Run the face-restore pass as a second queued render.
@@ -208,11 +258,8 @@ class _ComfyProvider:
         ReActor, and the job hung until it timed out. The unload below is the
         part that actually makes the split work.
         """
-        report(1.0, "sharpening the face")
-
-        # Before anything of pass two is loaded, and before the upload, so the
-        # peak never holds both stages' weights at once.
-        await client.free_models()
+        second = _span(report, self._pass_one_share, 1.0)
+        second(0.0, "sharpening the face")
 
         # The first stage's result lives in ComfyUI's *output* folder; a
         # loader reads from *input*, so it has to go back over the wire.
@@ -226,15 +273,26 @@ class _ComfyProvider:
                 template_video=stage_one,
             ),
         )
-        prompt_id = await client.queue(graph)
-        await self._stream_progress(
-            client, prompt_id, report,
-            pass_label="Pass 2/2 · ",
-            node_types=_node_types(graph),
-        )
-        assets = await self._await_outputs(client, prompt_id)
-        polished = _pick(assets, prefer)
-        return await client.download(polished), polished
+        # Taking the turn empties the box first, so pass two's weights never
+        # land on top of pass one's. This is the boundary that used to kill
+        # the server fifteen minutes into a render, with no traceback.
+        async with gpu_turn(client, "render pass 2"):
+            prompt_id = await client.queue(graph)
+            finished, reached = await self._stream_progress(
+                client, prompt_id, second,
+                pass_label="Pass 2/2 · ",
+                node_types=_node_types(graph),
+            )
+            waiting = (
+                None
+                if finished
+                else self._creep(
+                    second, reached, "Pass 2/2 · Sharpening the frames"
+                )
+            )
+            assets = await self._await_outputs(client, prompt_id, on_wait=waiting)
+            polished = _pick(assets, prefer)
+            return await client.download(polished), polished
 
     async def _stream_progress(
         self,
@@ -244,7 +302,7 @@ class _ComfyProvider:
         *,
         pass_label: str = "",
         node_types: dict[str, str] | None = None,
-    ) -> None:
+    ) -> tuple[bool, float]:
         """Follow progress, but never let the progress stream end the render.
 
         A face swap reports almost nothing between "node started" and "node
@@ -253,7 +311,14 @@ class _ComfyProvider:
         way the right move is the same: stop listening and go ask history. The
         cost of guessing wrong is a progress bar that stops moving; the cost of
         waiting on a dead socket is a render that never returns.
+
+        Returns whether the stream saw the render through to the end, and the
+        last sampler fraction it managed to report. Giving up is not the same
+        as finishing, and the caller has to be able to tell the two apart —
+        treating a dead socket as a completed pass is what used to throw the
+        ring to the top of the bar with a quarter of an hour still to run.
         """
+        last = 0.0
         iterator = client.watch(prompt_id).__aiter__()
         while True:
             try:
@@ -261,14 +326,14 @@ class _ComfyProvider:
                     iterator.__anext__(), self._progress_idle_timeout_s
                 )
             except StopAsyncIteration:
-                return
+                return True, last
             except (asyncio.TimeoutError, ComfyError, OSError) as exc:
                 log.warning(
                     "progress stream for %s gave up (%s) — polling history",
                     prompt_id,
                     exc,
                 )
-                return
+                return False, last
             if step.stage == "sampling":
                 # The exact counters ComfyUI prints to its own console. A user
                 # watching a 20-minute render wants the real numbers, not a
@@ -284,7 +349,11 @@ class _ComfyProvider:
                 # of them finishing at 1/1 used to slam the ring to its maximum
                 # while the actual work had barely started. Those move the
                 # detail line and leave the number alone.
-                report(step.value if kind in _SAMPLER_NODES else None, note)
+                if kind in _SAMPLER_NODES:
+                    last = max(last, step.value)
+                    report(step.value, note)
+                else:
+                    report(None, note)
             elif step.stage == "executing":
                 # Sampling is only the last third of a Wan render; before it
                 # come model loads, segmentation and pose estimation, which
@@ -358,9 +427,10 @@ class _ComfyProvider:
                                 negative="", seed=_REFERENCE_SEED,
                                 template_still=still_name),
             )
-            prompt_id = await client.queue(graph)
-            assets = await self._await_outputs(client, prompt_id)
-            data = await client.download(_pick(assets, _IMAGE_SUFFIXES))
+            async with gpu_turn(client, "costume reference"):
+                prompt_id = await client.queue(graph)
+                assets = await self._await_outputs(client, prompt_id)
+                data = await client.download(_pick(assets, _IMAGE_SUFFIXES))
             # Stable name per scenario so repeat renders overwrite rather than
             # filling the pod's input folder.
             return await client.upload_image(data, f"{template.template_id}.ref.hybrid.png")
@@ -424,23 +494,48 @@ class _ComfyProvider:
                 ),
             )
 
-            prompt_id = await client.queue(graph)
-            # Zero means "accepted, not sampling yet" — the caller renders that
-            # as scene setup rather than as generation progress.
-            report(0.0, "queued")
-
-            await self._stream_progress(
-                client, prompt_id, report,
-                pass_label="Pass 1/2 · " if self._polish_workflow_path else "",
-                node_types=_node_types(graph),
+            # `gpu_turn` empties the box and holds it for the whole pass.
+            # Both halves matter: whatever ran before left its weights loaded
+            # -- most often the ReActor preview swaps the app fires the moment
+            # the selfie is taken -- and anything arriving during the pass
+            # would stack its own on top. Either way Wan's ~28 GB is what
+            # pushes the 62 GB container over. See `gpu_guard`.
+            two_pass = self._polish_workflow_path is not None
+            label = "Pass 1/2 · " if two_pass else ""
+            first = _span(
+                report, 0.0, self._pass_one_share if two_pass else 1.0
             )
 
-            report(1.0, "Collecting the output")
-            assets = await self._await_outputs(client, prompt_id)
-            chosen = _pick(assets, prefer)
-            data = await client.download(chosen)
+            async with gpu_turn(client, "render pass 1"):
+                prompt_id = await client.queue(graph)
+                # Zero means "accepted, not sampling yet" — the caller renders
+                # that as scene setup rather than as generation progress.
+                report(0.0, "queued")
 
-            if self._polish_workflow_path is not None:
+                finished, reached = await self._stream_progress(
+                    client, prompt_id, first,
+                    pass_label=label,
+                    node_types=_node_types(graph),
+                )
+
+                if finished:
+                    first(1.0, "Collecting the output")
+                    waiting = None
+                else:
+                    # The socket went quiet, not the render. Calling that a
+                    # finished pass is what parked the ring at its maximum
+                    # with most of the work still ahead of it.
+                    waiting = self._creep(
+                        first, reached, f"{label}Rendering the frames"
+                    )
+
+                assets = await self._await_outputs(
+                    client, prompt_id, on_wait=waiting
+                )
+                chosen = _pick(assets, prefer)
+                data = await client.download(chosen)
+
+            if two_pass:
                 data, chosen = await self._polish(
                     client, data, chosen, image_name, prefer, report
                 )
@@ -586,10 +681,15 @@ class ComfyFaceSwapProvider(_ComfyProvider, ImageProvider):
                 ),
             )
 
-            prompt_id = await client.queue(graph)
-            assets = await self._await_outputs(client, prompt_id)
-            chosen = _pick(assets, _IMAGE_SUFFIXES)
-            data = await client.download(chosen)
+            # Previews queue behind a render rather than beside it. They are
+            # small, but ReActor still holds GFPGAN, inswapper and the NSFW
+            # detector, and that is exactly what used to be resident when a
+            # render arrived and pushed the box past its limit.
+            async with gpu_turn(client, "preview swap"):
+                prompt_id = await client.queue(graph)
+                assets = await self._await_outputs(client, prompt_id)
+                chosen = _pick(assets, _IMAGE_SUFFIXES)
+                data = await client.download(chosen)
         except ComfyError as exc:
             raise ProviderError(str(exc)) from exc
         except wf.WorkflowError as exc:

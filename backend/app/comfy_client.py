@@ -118,16 +118,37 @@ class ComfyClient:
         split only buys anything if the first pass's models actually go away
         in between, and that takes asking.
 
-        Best-effort. A failure here costs memory, not correctness, so it must
-        never take down a render that has otherwise succeeded.
+        Skipped while ComfyUI is busy. `/free` is an out-of-band HTTP call,
+        not a queued node, so it takes effect immediately -- including in the
+        middle of somebody else's render. Two overlapping jobs (a second user,
+        or a preview batch racing a video) would otherwise have one of them
+        pull the other's weights out from under it mid-sample. Leaving memory
+        unfreed is survivable; corrupting a render that is already running is
+        not.
+
+        Best-effort throughout. A failure here costs memory, not correctness,
+        so it must never take down a render that has otherwise succeeded.
         """
         try:
             async with httpx.AsyncClient(timeout=120) as http:
+                queue = await http.get(f"{self._base}/queue")
+                if queue.status_code == 200:
+                    state = queue.json()
+                    busy = len(state.get("queue_running") or []) + len(
+                        state.get("queue_pending") or []
+                    )
+                    if busy:
+                        log.info(
+                            "Not freeing ComfyUI models: %d job(s) in flight",
+                            busy,
+                        )
+                        return
+
                 await http.post(
                     f"{self._base}/free",
                     json={"unload_models": True, "free_memory": True},
                 )
-        except (httpx.HTTPError, OSError) as exc:
+        except (httpx.HTTPError, OSError, ValueError) as exc:
             log.warning("Could not free ComfyUI models: %r", exc)
 
     async def upload_image(self, data: bytes, filename: str) -> str:

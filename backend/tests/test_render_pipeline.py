@@ -44,10 +44,17 @@ class FakeComfy:
         self.uploads: list[tuple[str, bytes]] = []
         self.queued_graph: dict | None = None
         self.sessions = 0
+        # How many times the provider asked the box to drop its weights. The
+        # render is expected to do this before it queues anything, because the
+        # 62 GB container cannot hold a previous job's models plus Wan's.
+        self.frees = 0
 
     @property
     def uploaded(self) -> bytes | None:
         return self.uploads[0][1] if self.uploads else None
+
+    async def free_models(self) -> None:
+        self.frees += 1
 
     def session(self) -> "FakeComfy":
         # The real client returns a *new* client here so concurrent renders get
@@ -358,3 +365,116 @@ async def test_the_template_clip_is_bound_into_the_graph(service) -> None:
     node = wf.find_by_title(fake.queued_graph, wf.MARKER_TEMPLATE_VIDEO)
     assert node, "the shipped graph lost its FY_TEMPLATE_VIDEO marker"
     assert fake.queued_graph[node]["inputs"]["video"] == "astronaut.mp4"
+
+
+async def test_the_box_is_emptied_before_a_render_queues_anything(service) -> None:
+    """The 62 GB container cannot hold two jobs' weights at once.
+
+    The app fires a batch of ReActor preview swaps the moment the user takes
+    their selfie; those stay loaded, and Wan's ~28 GB then lands on top and
+    the server is OOM-killed during model init -- no traceback, and the job
+    hangs at 90% until it times out. So a render must start from an empty box,
+    not merely free memory between its own two passes.
+    """
+    svc, _, fake = service
+
+    await _drain(svc.start(face_image=b"x", prompt="p", template_id="pirate"))
+
+    assert fake.frees >= 1, "a render must drop whatever was loaded before it"
+
+
+def _two_pass(tmp_path: Path, fake: FakeComfy) -> tuple[RenderService, JobStore]:
+    """The shipped two-pass setup: Wan Animate, then the ReActor polish."""
+    templates = tmp_path / "templates"
+    templates.mkdir()
+    (templates / "pirate.mp4").write_bytes(b"fake template clip")
+    (templates / "pirate.points.json").write_text(
+        json.dumps(
+            {
+                "positive": [{"x": 0.5, "y": 0.3}],
+                "negative": [{"x": 0.05, "y": 0.05}],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    settings = Settings(
+        output_dir=str(tmp_path / "outputs"),
+        template_dir=str(templates),
+        public_base_url="https://render.example.com",
+    )
+    store = JobStore()
+    provider = ComfyVideoProvider(
+        base_url="http://comfy.invalid",
+        workflow_path=WORKFLOW_DIR / "wan_animate.json",
+        polish_workflow_path=WORKFLOW_DIR / "reactor_boost.json",
+        width=settings.video_width,
+        height=settings.video_height,
+        frames=settings.frame_count,
+    )
+    provider._client = fake  # noqa: SLF001 — deliberate seam for tests
+    return RenderService(settings, store, provider), store
+
+
+@pytest.mark.asyncio
+async def test_the_face_pass_gets_its_own_share_of_the_bar(tmp_path) -> None:
+    """Pass one finishing is not the render finishing.
+
+    Each pass reports its own 0..1 and knows nothing about the other, and the
+    store will not let progress fall — so feeding both into one band pinned
+    the ring at its maximum the moment Wan was done, and ran the whole face
+    restore, minutes of it, inside that last pixel. The app showed 90% and
+    "about 2 minutes left" with a quarter of an hour still to go.
+    """
+    fake = FakeComfy()
+    svc, store = _two_pass(tmp_path, fake)
+
+    at_queue: list[float] = []
+    original = fake.queue
+
+    async def spy(graph):
+        at_queue.append(store.get(job.id).progress)
+        return await original(graph)
+
+    fake.queue = spy  # type: ignore[method-assign]
+
+    job = svc.start(face_image=b"x", prompt="p", template_id="pirate")
+    await _drain(job)
+
+    assert store.get(job.id).status is JobStatus.COMPLETED
+    assert len(at_queue) >= 2, "the polish pass never ran"
+    # The reading taken as the face pass is queued. There is real work left,
+    # so the bar must still have somewhere to go.
+    assert at_queue[-1] < 0.85, (
+        f"the bar was already at {at_queue[-1]:.0%} when the face pass started"
+    )
+
+
+@pytest.mark.asyncio
+async def test_a_silent_socket_does_not_jump_the_bar_to_the_end(tmp_path) -> None:
+    """A dead socket is not a finished pass.
+
+    The Wan sampler reports nothing across its whole eight-step run, so the
+    progress stream times out mid-render every time. Treating that as "pass
+    one is done" threw the ring to the top of the bar with most of the work
+    still ahead — the single worst thing the customer sees.
+    """
+    fake = FakeComfy(fail_at="watch")
+    svc, store = _two_pass(tmp_path, fake)
+
+    at_queue: list[float] = []
+    original = fake.queue
+
+    async def spy(graph):
+        at_queue.append(store.get(job.id).progress)
+        return await original(graph)
+
+    fake.queue = spy  # type: ignore[method-assign]
+
+    job = svc.start(face_image=b"x", prompt="p", template_id="pirate")
+    await _drain(job)
+
+    assert store.get(job.id).status is JobStatus.COMPLETED
+    assert at_queue[-1] < 0.85, (
+        f"a dropped socket put the bar at {at_queue[-1]:.0%} before the face pass"
+    )

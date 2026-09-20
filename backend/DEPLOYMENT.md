@@ -259,3 +259,90 @@ flutter run \
 
 `run_pod.sh` in the repo root does exactly this and is gitignored, since it
 carries the key. With no dart-defines the app runs on mocks, unchanged.
+
+## Keeping it up on its own
+
+The pod is meant to run unattended while somebody tries the app. Three things
+make that true, and they work at different levels.
+
+### 1. One job on the GPU at a time
+
+The container is capped at 62 GB. Wan Animate is about 28 GB of that, and the
+ReActor face swap the app fires after a selfie holds GFPGAN, inswapper and the
+NSFW detector. Nothing stops those two sets of weights being resident at once
+except refusing to run the jobs at once, which is what `app/gpu_guard.py`
+does. Every queued prompt, from any provider, takes a turn: the box is emptied
+inside the lock, the job runs, the lock is released.
+
+This was the last of four holes, and the only one you can see in the logs:
+
+```
+Waiting for the render box: preview swap is queued behind another job
+Render box free after 19s, starting preview swap
+```
+
+Before it, a render queued at 07:58 and six preview swaps queued at 07:59
+killed ComfyUI at 08:08, during model init, with no traceback.
+
+### 2. The API puts ComfyUI back
+
+`COMFY_RESTART_CMD` in `backend/.env` points at `deploy/comfy_restart.sh`.
+When a render fails, the API asks ComfyUI whether it is still answering. If it
+is, the render failed on its own merits and the error stands. If it is not,
+the script runs, the API waits for health, and the render is tried once more.
+
+Once. A render is twenty minutes of GPU time, and a crash that repeats is a
+fault rather than a blip.
+
+### 3. A supervisor under both
+
+```bash
+nohup bash /workspace/funnyyou-api/backend/deploy/supervise.sh \
+    >> /workspace/supervise.log 2>&1 &
+```
+
+Every 30 seconds it checks that ComfyUI answers and that the API holds its
+port, and starts whichever is missing. This is what covers a pod reboot, a
+crash during startup, and anything the API cannot fix from inside itself.
+
+It checks the API on the **port**, not on `/v1/health`, because the API
+correctly answers 503 while ComfyUI is down. Restarting it for telling the
+truth would fix nothing.
+
+### Restarting things by hand
+
+Never `pkill -f "uvicorn app.main"` or `pkill -f ComfyUI/main.py` over SSH.
+The pattern matches the ssh command line running it, so pkill takes down its
+own shell and the whole thing looks like a dropped connection. Kill by the pid
+that owns the port:
+
+```bash
+PID=$(ss -ltnp | grep ":8888" | sed -n 's/.*pid=\([0-9]*\).*/\1/p' | head -1)
+kill "$PID"     # the supervisor starts it again within 30 seconds
+```
+
+## The selfie check
+
+`POST /v1/photo-check` reads a selfie and reports what is wrong with it:
+exposure, focus, whether there is a face, how many, and the head's yaw, pitch
+and roll.
+
+The angle needs landmarks, and on the phone that means ML Kit, a large native
+dependency and an iOS pod that raises the minimum iOS version. The box is
+already running InsightFace for the swap, so it answers there instead and the
+app stays free of native dependencies. The phone still reads exposure and
+focus itself, instantly and offline, and only pays for the round trip when it
+is otherwise happy with the photo.
+
+`INSIGHTFACE_ROOT` points at the folder holding `models/buffalo_l` -- on the
+pod that is `/workspace/ComfyUI/models/insightface`, which ReActor already
+downloaded. The directory is confirmed before InsightFace is told about it,
+because handed a path it does not have, InsightFace downloads 280 MB rather
+than failing, onto a volume with a 60 GB quota, during somebody's first
+selfie. Found nothing, the face half of the check turns off and exposure and
+focus still work.
+
+Everything it returns is advice, and every failure is silent: no backend, no
+signal, a slow reply or an unreadable one all read as "nothing wrong". The one
+finding that stops a person proceeding is `no_face`, because that one cannot
+produce a video at all.

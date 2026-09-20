@@ -13,6 +13,7 @@ import logging
 from pathlib import Path
 
 from .config import Settings
+from .gpu_guard import ComfySupervisor
 from .jobs import Job, JobStatus, JobStore, Stage
 from .providers import ProviderError, VideoProvider, build_video_provider
 from .template_library import TemplateLibrary
@@ -52,6 +53,7 @@ class RenderService:
             settings, workflow_dir=Path(__file__).parent.parent / "workflows"
         )
         self._templates = TemplateLibrary(settings.template_dir)
+        self._supervisor = ComfySupervisor(settings.comfy_restart_cmd)
 
     @property
     def provider_name(self) -> str:
@@ -92,6 +94,50 @@ class RenderService:
         detail["requiresTemplate"] = self._provider.requires_template
 
         return detail
+
+    async def _generate(
+        self, job_id: str, *, prompt: str, face_image: bytes, template, on_progress
+    ):
+        """Render, and if the box died under us, put it back and try once.
+
+        A render can fail because the graph is wrong, which retrying will not
+        fix, or because ComfyUI is no longer there, which retrying is the only
+        thing that fixes. The two are told apart by asking the server whether
+        it is answering -- not by reading the error, which for a server killed
+        mid-prompt is an unhelpful dropped connection.
+
+        Exactly one retry. A render costs twenty minutes of GPU time and a
+        crash that repeats is a real fault, not a blip, so looping on it would
+        burn the box and still not produce a video.
+        """
+        try:
+            return await self._provider.generate_video(
+                prompt=prompt,
+                face=face_image,
+                template=template,
+                on_progress=on_progress,
+            )
+        except ProviderError as exc:
+            client = getattr(self._provider, "_client", None)
+            if client is None or not self._supervisor.enabled:
+                raise
+            if not await self._supervisor.recover(client):
+                # Either the box never went away -- so this render failed on
+                # its own merits -- or it did and would not come back.
+                raise
+
+            log.warning("Render %s died with the box; retrying once (%s)", job_id, exc)
+            self._store.update(
+                job_id,
+                stage=Stage.BUILDING_SCENE,
+                detail="Starting the render over",
+            )
+            return await self._provider.generate_video(
+                prompt=prompt,
+                face=face_image,
+                template=template,
+                on_progress=on_progress,
+            )
 
     def start(self, *, face_image: bytes, prompt: str, template_id: str | None) -> Job:
         job = self._store.create(template_id=template_id, prompt=prompt)
@@ -179,9 +225,10 @@ class RenderService:
             progress=_blend(Stage.MATCHING_FACE, 0.5),
         )
 
-        asset = await self._provider.generate_video(
+        asset = await self._generate(
+            job_id,
             prompt=prompt,
-            face=face_image,
+            face_image=face_image,
             template=template,
             on_progress=on_progress,
         )

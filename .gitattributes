@@ -1,0 +1,4 @@
+# The pod runs these over bash. Checked out on Windows with autocrlf on, they
+# pick up CRLF, and bash then fails on the carriage return with errors that
+# point at the wrong line. Keep them LF wherever they are checked out.
+*.sh text eol=lf
