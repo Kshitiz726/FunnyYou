@@ -135,7 +135,7 @@ class AppState extends ChangeNotifier {
       // to show. Those two used to be assumed identical; once the backend
       // started reporting which scenarios it can actually render, the picker
       // began leading with renderable ones, and a tile it showed from outside
-      // previewSet had no face to display. Generating all 40 is not the
+      // previewSet had no face to display. Generating every one is not the
       // answer -- each one is a real API call for art most people never see.
       //
       // The picker's four go **first**. Each swap is a real call on the render

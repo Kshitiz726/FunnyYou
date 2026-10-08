@@ -33,10 +33,12 @@ flutter:
   uses-material-design: true
 
   assets:
-    # Optional reference artwork, one file per template id.
-    # See assets/templates/README.md — the UI falls back to a designed
+    # One poster frame per scenario, lifted from that scenario's own clip.
+    # See assets/video_templates/README.md — the UI falls back to a designed
     # gradient placeholder for any id without a file.
-    - assets/templates/
+    - assets/video_templates/
+    # The fixed locked preview each scenario plays before you pay.
+    - assets/locked_previews/
 
 # Local toolchain workaround, not a project constraint.
 # permission_handler_android 14 compiles against Android API 37, and this

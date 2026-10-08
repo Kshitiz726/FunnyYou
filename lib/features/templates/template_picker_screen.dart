@@ -14,6 +14,7 @@ import '../../data/templates.dart';
 import '../../services/service_locator.dart';
 import '../../state/app_state.dart';
 import 'widgets/template_tile.dart';
+import 'scenario_preview_screen.dart';
 
 /// The face-swap screen: a large live preview on top, the full 40-scenario
 /// catalogue below, grouped into categories.
@@ -57,12 +58,23 @@ class _TemplatePickerScreenState extends State<TemplatePickerScreen> {
     _select(pool[math.Random().nextInt(pool.length)]);
   }
 
-  void _confirm() {
-    context.read<AppState>().selectTemplate(_selected);
+  /// Preview the locked clip, then commit if they are happy with it.
+  ///
+  /// Same gate as the quick pick, so a scenario is never generated from a
+  /// tile alone. Backing out of the preview leaves the selection as it was.
+  Future<void> _confirm() async {
+    final chosen = await Navigator.of(context).push<VideoTemplate>(
+      MaterialPageRoute(
+        builder: (_) => ScenarioPreviewScreen(template: _selected),
+      ),
+    );
+    if (chosen == null || !mounted) return;
+
+    context.read<AppState>().selectTemplate(chosen);
     if (widget.onConfirmed != null) {
-      widget.onConfirmed!(_selected);
+      widget.onConfirmed!(chosen);
     } else {
-      Navigator.of(context).pop(_selected);
+      Navigator.of(context).pop(chosen);
     }
   }
 

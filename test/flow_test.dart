@@ -180,11 +180,17 @@ void main() {
     expect(find.byType(HomeShell), findsOneWidget);
   });
 
-  test('the catalogue holds 40 templates across every category', () {
-    expect(TemplateCatalog.all, hasLength(40));
+  test('every scenario in the catalogue has a clip behind it', () {
+    // The client supplied the footage, one clip per scenario, and this is the
+    // whole catalogue rather than a sample of it. The forty invented
+    // scenarios this replaced had no footage at all, so the picker was mostly
+    // "Soon" badges on scenes that did not exist. Nothing may be listed here
+    // that cannot actually be made.
+    expect(TemplateCatalog.all, isNotEmpty);
 
     final ids = TemplateCatalog.all.map((t) => t.id).toSet();
-    expect(ids, hasLength(40), reason: 'template ids must be unique');
+    expect(ids, hasLength(TemplateCatalog.all.length),
+        reason: 'template ids must be unique');
 
     for (final category in TemplateCategory.values) {
       expect(
@@ -273,30 +279,38 @@ void main() {
 
   test('draft prompt merges template and custom text', () async {
     final state = await _state({});
-    state.selectTemplate(TemplateCatalog.byId('chef'));
+    state.selectTemplate(TemplateCatalog.byId('gym'));
     state.setCustomPrompt('wearing a silly hat');
 
-    expect(state.draftPrompt, contains('master chef'));
+    expect(state.draftPrompt, contains('deadlifting'));
     expect(state.draftPrompt, endsWith('wearing a silly hat'));
   });
 
   test('previews are generated only for tiles visible without scrolling', () {
     final set = TemplateCatalog.previewSet;
 
-    // Every preview is a GPU face swap (~20s). The two home-screen sections
-    // overlap, so the visible tiles cost 5 generations rather than 40 - an 8x
-    // saving that has to survive anyone reordering the catalogue.
-    expect(set, hasLength(5));
+    // Every face preview is a GPU swap that someone pays for. The client's
+    // own framing was "those 4 photos", so four is the number this must not
+    // drift above without a decision.
+    expect(set, hasLength(TemplateCatalog.facePreviewCount));
+    expect(TemplateCatalog.facePreviewCount, 4);
     expect(set.map((t) => t.id).toSet(), hasLength(set.length),
         reason: 'a duplicate would be paid for twice');
 
-    for (final template in TemplateCatalog.featured.take(
-        TemplateCatalog.styleRailPreviewCount)) {
-      expect(set, contains(template), reason: 'style rail tile has no preview');
-    }
     for (final template
-        in TemplateCatalog.all.take(TemplateCatalog.discoveryPreviewCount)) {
-      expect(set, contains(template), reason: 'discovery tile has no preview');
+        in TemplateCatalog.featured.take(TemplateCatalog.facePreviewCount)) {
+      expect(set, contains(template), reason: 'leading tile has no preview');
+    }
+  });
+
+  test('the locked video previews are bundled, not generated', () {
+    // The whole point of the locked preview is that showing it costs nothing
+    // and never queues a render. If one were ever fetched or generated, that
+    // would quietly reintroduce a per-user cost on browsing.
+    for (final template in TemplateCatalog.all) {
+      expect(template.lockedPreviewPath, startsWith('assets/'),
+          reason: '${template.id} preview is not a bundled asset');
+      expect(template.lockedPreviewPath, endsWith('.mp4'));
     }
   });
 
@@ -304,12 +318,17 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     final state = await AppState.load();
 
-    // Free: the four visible tiles are real art, everything else is padlocked.
-    expect(state.isTemplateLocked('superhero'), isFalse);
-    expect(state.isTemplateLocked('chef'), isTrue);
+    // Free: the tiles with a face preview are real art, the rest are padlocked.
+    final free = TemplateCatalog.previewSet.first.id;
+    final paid = TemplateCatalog.all
+        .firstWhere((t) => !TemplateCatalog.previewSet.contains(t))
+        .id;
+
+    expect(state.isTemplateLocked(free), isFalse);
+    expect(state.isTemplateLocked(paid), isTrue);
 
     await state.addCredits(5);
-    expect(state.isTemplateLocked('chef'), isFalse);
+    expect(state.isTemplateLocked(paid), isFalse);
 
     // Spending the last credit must not take the catalogue back off a customer.
     await state.consumeCredit();
@@ -318,7 +337,7 @@ void main() {
     await state.consumeCredit();
     await state.consumeCredit();
     expect(state.credits, 0);
-    expect(state.isTemplateLocked('chef'), isFalse,
+    expect(state.isTemplateLocked(paid), isFalse,
         reason: 're-locking a paying user reads as a bug');
   });
 }

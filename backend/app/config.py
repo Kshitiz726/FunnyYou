@@ -142,7 +142,7 @@ class Settings:
     # The scenario artwork a face-swap preview pastes into. Defaults to the
     # app's own bundled tiles so there is one copy, not two.
     template_still_dir: str = field(
-        default_factory=lambda: _env("TEMPLATE_STILL_DIR", "../assets/templates")
+        default_factory=lambda: _env("TEMPLATE_STILL_DIR", "../assets/video_templates")
     )
     comfy_swap_workflow: str = field(
         default_factory=lambda: _env("COMFY_SWAP_WORKFLOW", "reactor_image_swap.json")

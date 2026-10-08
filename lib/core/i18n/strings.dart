@@ -315,6 +315,18 @@ class S {
       _da ? 'Vælg dit scenarie' : 'Choose your scenario';
   String get moreScenarios => _da ? 'Flere scenarier' : 'More scenarios';
 
+  // ── Locked scenario preview ───────────────────────────────────────────
+  // The clip everyone sees before paying. Same file for every user, so it
+  // costs nothing to show and never waits on a render.
+  String get previewTitle => _da ? 'Smugkig' : 'Preview';
+  String get previewLockedNote => _da
+      ? 'Sådan ser scenariet ud. Dit ansigt er skjult, indtil du laver din egen video.'
+      : 'This is how the scenario looks. Your face stays hidden until you make your own video.';
+  String get previewMakeMine => _da ? 'Lav min video' : 'Make my video';
+  String get previewPickAnother => _da ? 'Vælg et andet' : 'Pick another';
+  String get previewUnavailable =>
+      _da ? 'Smugkig kommer snart' : 'Preview coming soon';
+
   String get faceInCircle => _da
       ? 'Hold ansigtet inde i cirklen'
       : 'Put your face inside the circle';
@@ -425,8 +437,10 @@ class S {
   String get perkQuality => _da
       ? 'Video i høj kvalitet, som du beholder for altid'
       : 'High-quality video you can keep forever';
-  String get perkAllScenarios =>
-      _da ? 'Alle 40 scenarier låst op' : 'All 40 scenarios unlocked';
+  /// Takes the count so the catalogue stays the single source of truth.
+  /// It was hardcoded to 40 and went stale the moment the catalogue changed.
+  String perkAllScenarios(int n) =>
+      _da ? 'Alle $n scenarier låst op' : 'All $n scenarios unlocked';
   String get perkFast =>
       _da ? 'Klar på cirka to minutter' : 'Ready in about 2 minutes';
   String get perkPrivate => _da

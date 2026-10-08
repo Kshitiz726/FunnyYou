@@ -138,8 +138,8 @@ Three fallbacks, in order:
 
 1. **An AI preview of the actual user**, generated free on Gemini right after
    they take their photo. This is the default once a backend is connected.
-2. Bundled reference art — drop a JPG into `assets/templates/<id>.jpg` and it
-   appears automatically, no code change. See `assets/templates/README.md`.
+2. The scenario poster frame — `assets/video_templates/<id>.jpg`, pulled from
+   that scenario's own clip. See `assets/video_templates/README.md`.
 3. The scenario icon on its gradient, with the user's photo inset.
 
 So the picker works with no backend and no assets, and gets better as you add

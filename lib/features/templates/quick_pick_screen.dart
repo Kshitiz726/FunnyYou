@@ -11,6 +11,7 @@ import '../../core/widgets/backdrop.dart';
 import '../../data/templates.dart';
 import '../../services/service_locator.dart';
 import '../../state/app_state.dart';
+import 'scenario_preview_screen.dart';
 import 'template_picker_screen.dart';
 import 'widgets/template_tile.dart';
 
@@ -66,10 +67,20 @@ class _QuickPickScreenState extends State<QuickPickScreen> {
         count: QuickPickScreen.shortlistLength,
       );
 
-  void _choose(VideoTemplate template) {
+  /// Show the locked clip first, and only commit if they say yes.
+  ///
+  /// The preview is a bundled file, so this costs nothing and adds no wait;
+  /// backing out of it returns here rather than to the caller.
+  Future<void> _choose(VideoTemplate template) async {
     HapticFeedback.selectionClick();
-    context.read<AppState>().selectTemplate(template);
-    Navigator.of(context).pop(template);
+    final confirmed = await Navigator.of(context).push<VideoTemplate>(
+      MaterialPageRoute(
+        builder: (_) => ScenarioPreviewScreen(template: template),
+      ),
+    );
+    if (confirmed == null || !mounted) return;
+    context.read<AppState>().selectTemplate(confirmed);
+    Navigator.of(context).pop(confirmed);
   }
 
   Future<void> _openFullCatalogue() async {

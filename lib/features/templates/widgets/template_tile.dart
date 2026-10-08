@@ -19,7 +19,7 @@ import '../../../state/app_state.dart';
 /// Order of preference:
 /// 1. An AI preview of *this user* in the scenario, generated after they take
 ///    their photo (see [PreviewStore]),
-/// 2. bundled reference art at `assets/templates/<id>.jpg`,
+/// 2. the scenario poster frame at `assets/video_templates/<id>.jpg`,
 /// 3. the scenario icon on its gradient, with the user's photo inset.
 ///
 /// Listens to the store so tiles fill in live as previews arrive.

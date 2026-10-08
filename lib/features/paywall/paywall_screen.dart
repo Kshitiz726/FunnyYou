@@ -223,12 +223,13 @@ class _Header extends StatelessWidget {
 class _Benefits extends StatelessWidget {
   const _Benefits();
 
-  static const _items = [
-    (Icons.hd_rounded, 'High-quality video you can keep forever'),
-    (Icons.movie_filter_rounded, 'All 40 scenarios unlocked'),
-    (Icons.watch_later_rounded, 'Ready in about 2 minutes'),
-    (Icons.lock_rounded, 'Your photo is never shared with anyone'),
-  ];
+  static List<(IconData, String)> _itemsFor(S s) => [
+        (Icons.hd_rounded, s.perkQuality),
+        (Icons.movie_filter_rounded,
+            s.perkAllScenarios(TemplateCatalog.all.length)),
+        (Icons.watch_later_rounded, s.perkFast),
+        (Icons.lock_rounded, s.perkPrivate),
+      ];
 
   @override
   Widget build(BuildContext context) {
@@ -238,7 +239,7 @@ class _Benefits extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.md),
       child: Column(
         children: [
-          for (final (icon, label) in _items)
+          for (final (icon, label) in _itemsFor(context.s))
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 6),
               child: Row(
