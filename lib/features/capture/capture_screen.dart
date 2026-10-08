@@ -52,6 +52,17 @@ class _CaptureScreenState extends State<CaptureScreen>
 
   bool get _cameraAvailable => _controller?.value.isInitialized ?? false;
 
+  /// Whether [controller] is still the one this screen is using.
+  ///
+  /// A capture already in flight when the camera is torn down -- the app going
+  /// to the background, a flip, the screen closing -- is left holding a
+  /// controller nobody can use any more. Touching it throws a FlutterError
+  /// rather than a CameraException, so it sails past the catch below and
+  /// crashes the shutter. Checked after every await that could let the
+  /// teardown run.
+  bool _stillLive(CameraController controller) =>
+      mounted && identical(_controller, controller);
+
   @override
   void initState() {
     super.initState();
@@ -148,6 +159,8 @@ class _CaptureScreenState extends State<CaptureScreen>
       // and leaving the stream running turns the shutter into a silent
       // failure on some devices.
       await _light.detach(controller);
+      if (!_stillLive(controller)) return;
+
       final file = await controller.takePicture();
       if (!mounted) return;
       setState(() {
@@ -177,6 +190,13 @@ class _CaptureScreenState extends State<CaptureScreen>
     } on CameraException catch (e) {
       if (!mounted) return;
       setState(() => _error = e.description ?? context.s.couldNotTakePhoto);
+    } catch (error) {
+      // The camera can be torn down while takePicture is still in flight, and
+      // what comes back then is not a CameraException. Losing the shot is
+      // fine; crashing on the client's phone is not.
+      debugPrint('CaptureScreen: the shutter was interrupted ($error)');
+      if (!mounted) return;
+      setState(() => _error = context.s.couldNotTakePhoto);
     } finally {
       if (mounted) setState(() => _capturing = false);
     }

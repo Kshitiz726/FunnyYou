@@ -97,3 +97,6 @@ backend/templates/*.jpg
 
 # Local launcher: contains the backend API key
 /run_pod.sh
+
+# Cached face detections for tools/lock_previews.py (derived, re-creatable)
+tools/.detections/
